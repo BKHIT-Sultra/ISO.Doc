@@ -29,8 +29,9 @@ export function renderSidebar(user, currentPage) {
 
   return `
     <aside id="sidebar" 
-           class="w-64 min-h-screen flex-shrink-0 hidden lg:flex flex-col 
-                  bg-white border-r border-slate-200">
+           class="w-64 flex-shrink-0 hidden lg:flex flex-col 
+                  bg-white border-r border-slate-200
+                  sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       
       <!-- Logo Header -->
       <div class="p-5 border-b border-slate-100">
