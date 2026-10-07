@@ -1,5 +1,5 @@
 /**
- * Navbar Atas
+ * Navbar Atas — VERSI FIXED (dropdown pakai JS)
  */
 import { logout } from '../auth.js';
 import { debounce } from '../utils.js';
@@ -30,23 +30,32 @@ export function renderNavbar(user) {
         <div class="flex items-center gap-3">
           <span class="hidden md:inline-block text-xs bg-blue-100 text-blue-700 
                        px-2 py-1 rounded font-semibold">${user.role}</span>
-          <div class="relative group">
-            <button class="flex items-center gap-2 text-sm">
+          
+          <!-- Dropdown container -->
+          <div id="userMenuWrapper" class="relative">
+            <button id="userMenuBtn" type="button"
+                    class="flex items-center gap-2 text-sm px-2 py-1 rounded-lg hover:bg-slate-50 transition">
               <div class="w-8 h-8 bg-blue-600 text-white rounded-full 
                           flex items-center justify-center font-bold">
                 ${(user.nama || 'U').charAt(0).toUpperCase()}
               </div>
               <span class="hidden md:inline">${user.nama}</span>
+              <span class="text-xs text-slate-400">▾</span>
             </button>
-            <div class="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg 
-                        hidden group-hover:block min-w-[180px]">
-              <div class="p-3 border-b">
-                <div class="text-sm font-semibold">${user.nama}</div>
-                <div class="text-xs text-slate-500">${user.email}</div>
+
+            <!-- Dropdown menu (di-toggle via JS) -->
+            <div id="userMenuDropdown"
+                 class="hidden absolute right-0 top-full mt-2 bg-white border border-slate-200 
+                        rounded-lg shadow-lg min-w-[200px] z-50">
+              <div class="p-3 border-b border-slate-100">
+                <div class="text-sm font-semibold text-slate-800">${user.nama}</div>
+                <div class="text-xs text-slate-500 truncate">${user.email}</div>
+                <div class="text-xs text-blue-600 mt-1">${user.role}</div>
               </div>
               <button id="btnLogout"
-                      class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 text-red-600">
-                🚪 Logout
+                      class="w-full text-left px-3 py-2 text-sm hover:bg-red-50 
+                             text-red-600 rounded-b-lg flex items-center gap-2">
+                <span>🚪</span> Logout
               </button>
             </div>
           </div>
@@ -60,8 +69,47 @@ export function renderNavbar(user) {
  * Pasang event listener navbar
  */
 export function attachNavbarEvents() {
+  // ===== USER DROPDOWN =====
+  const wrapper = document.getElementById('userMenuWrapper');
+  const btn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userMenuDropdown');
+
+  if (btn && dropdown) {
+    let hideTimer = null;
+
+    const showDropdown = () => {
+      clearTimeout(hideTimer);
+      dropdown.classList.remove('hidden');
+    };
+
+    const hideDropdown = () => {
+      hideTimer = setTimeout(() => {
+        dropdown.classList.add('hidden');
+      }, 200); // delay 200ms supaya cursor sempat pindah
+    };
+
+    // Hover area wrapper (button + dropdown)
+    wrapper.addEventListener('mouseenter', showDropdown);
+    wrapper.addEventListener('mouseleave', hideDropdown);
+
+    // Klik tombol → toggle
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('hidden');
+    });
+
+    // Klik di luar → tutup
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  }
+
+  // ===== LOGOUT =====
   document.getElementById('btnLogout').onclick = logout;
 
+  // ===== TOGGLE SIDEBAR (mobile) =====
   const toggle = document.getElementById('toggleSidebar');
   if (toggle) {
     toggle.onclick = () => {
@@ -70,7 +118,7 @@ export function attachNavbarEvents() {
     };
   }
 
-  // Global search
+  // ===== GLOBAL SEARCH =====
   const input = document.getElementById('globalSearch');
   const results = document.getElementById('searchResults');
 
