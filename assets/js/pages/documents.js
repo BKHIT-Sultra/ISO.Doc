@@ -195,6 +195,61 @@ async function loadDocuments() {
   }
 }
 
+/**
+ * Tentukan apakah user boleh edit dokumen ini
+ * Rule:
+ *  - Admin: selalu bisa
+ *  - Editor: hanya bisa saat status Draft atau Review
+ *  - Role lain: tidak bisa
+ */
+function canEditDocument(doc) {
+  var user = state.user; // pastikan state.user tersedia
+  if (!user) return false;
+  
+  // Admin selalu bisa
+  if (user.role === 'Admin') return true;
+  
+  // Editor: Draft atau Review saja
+  if (user.role === 'Editor') {
+    return doc.status === 'Draft' || doc.status === 'Review';
+  }
+  
+  return false;
+}
+
+/**
+ * Render tombol edit atau tombol terkunci
+ */
+function renderEditButton(d) {
+  var allowed = canEditDocument(d);
+  
+  if (allowed) {
+    return '<a href="upload.html?id=' + d.doc_id + '" ' +
+             'class="w-8 h-8 rounded-lg flex items-center justify-center ' +
+                    'text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition" ' +
+             'title="Edit">' +
+           '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+             '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                   'd="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>' +
+           '</svg>' +
+         '</a>';
+  }
+  
+  // Tombol terkunci - disabled + tooltip
+  var tooltip = d.status === 'Approved'
+    ? 'Dokumen sudah disetujui (read-only). Hanya Admin yang dapat mengubah.'
+    : 'Anda tidak punya akses untuk edit dokumen ini.';
+  
+  return '<span class="w-8 h-8 rounded-lg flex items-center justify-center ' +
+               'text-slate-300 cursor-not-allowed" ' +
+               'title="' + tooltip + '">' +
+           '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+             '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                   'd="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>' +
+           '</svg>' +
+         '</span>';
+}
+
 // ============================================================
 // RENDER TABEL
 // ============================================================
@@ -294,25 +349,21 @@ function renderTable(docs) {
       // Aksi
       '<td class="text-right whitespace-nowrap">' +
         '<div class="inline-flex items-center gap-1">' +
+          
+          // Tombol Lihat (selalu ada)
           '<a href="document-detail.html?id=' + d.doc_id + '" ' +
              'class="w-8 h-8 rounded-lg flex items-center justify-center ' +
                     'text-blue-600 hover:bg-blue-50 transition" ' +
              'title="Lihat detail">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
               '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
-              '<path stroke-linecap="round" stroke-linejoin="round" ' +
-                    'd="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
             '</svg>' +
           '</a>' +
-          '<a href="upload.html?id=' + d.doc_id + '" ' +
-             'class="w-8 h-8 rounded-lg flex items-center justify-center ' +
-                    'text-slate-500 hover:bg-slate-100 transition" ' +
-             'title="Edit">' +
-            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-              '<path stroke-linecap="round" stroke-linejoin="round" ' +
-                    'd="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>' +
-            '</svg>' +
-          '</a>' +
+          
+          // Tombol Edit - HANYA jika BOLEH
+          renderEditButton(d) +
+          
         '</div>' +
       '</td>' +
     '</tr>';
