@@ -6,265 +6,421 @@
   <title>Upload Dokumen - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
+<body class="bg-slate-50 min-h-screen">
   <div id="navbar"></div>
 
   <div class="flex">
     <div id="sidebar"></div>
 
-    <main class="flex-1 p-6">
-      <div class="max-w-4xl mx-auto">
-        <h1 id="pageTitle" class="text-2xl font-bold text-slate-800 mb-6">⬆️ Upload Dokumen Baru</h1>
+    <main class="flex-1 min-w-0 p-4 lg:p-8">
 
-        <form id="uploadForm" class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 space-y-5">
+      <!-- Breadcrumb -->
+      <div class="mb-6 fade-in-up">
+        <a href="documents.html"
+           class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 
+                  hover:text-blue-600 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Kembali ke Daftar Dokumen
+        </a>
+      </div>
+
+      <!-- Header -->
+      <div class="mb-8 fade-in-up">
+        <div class="flex items-start gap-4">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
+               style="background: linear-gradient(135deg, #2563eb, #6366f1);">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h1 id="pageTitle" class="text-3xl lg:text-4xl font-extrabold text-slate-800 leading-tight">
+              Upload Dokumen Baru
+            </h1>
+            <p id="pageSubtitle" class="text-slate-500 text-sm mt-1">
+              Lengkapi data di bawah untuk menambahkan dokumen ke sistem
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="card-premium mb-6 fade-in-up fade-in-up-1">
+        <div class="flex items-center justify-between gap-4">
+          
+          <div class="flex items-center gap-3 flex-1">
+            <div class="step-dot active" data-step="1">
+              <span>1</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 uppercase tracking-wide">Info Dokumen</div>
+              <div class="text-xs text-slate-500 truncate">Jenis, kode, judul</div>
+            </div>
+          </div>
+
+          <div class="step-line"></div>
+
+          <div class="flex items-center gap-3 flex-1">
+            <div class="step-dot" data-step="2">
+              <span>2</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 uppercase tracking-wide">Klasifikasi</div>
+              <div class="text-xs text-slate-500 truncate">Klausul, standar</div>
+            </div>
+          </div>
+
+          <div class="step-line"></div>
+
+          <div class="flex items-center gap-3 flex-1">
+            <div class="step-dot" data-step="3">
+              <span>3</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 uppercase tracking-wide">File</div>
+              <div class="text-xs text-slate-500 truncate">Upload dokumen</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="uploadForm" class="space-y-6">
+
+        <!-- ============================================ -->
+        <!-- SECTION 1: INFO DOKUMEN                      -->
+        <!-- ============================================ -->
+        <div class="card-premium fade-in-up fade-in-up-1" id="section1">
+          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-800">Informasi Dokumen</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Identitas utama dokumen</p>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
             <!-- Jenis -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Dokumen *</label>
-              <select id="jenis" required
-                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="">-- Pilih --</option>
-                <option>Pedoman</option>
-                <option>Prosedur</option>
-                <option>IKK</option>
-                <option>Formulir</option>
-                <option>Eviden</option>
-                <option>Lampiran</option>
+              <label class="form-label">
+                Jenis Dokumen <span class="text-red-500">*</span>
+              </label>
+              <select id="jenis" required class="form-select">
+                <option value="">-- Pilih Jenis --</option>
+                <option value="Pedoman">Pedoman</option>
+                <option value="Prosedur">Prosedur</option>
+                <option value="IKK">IKK (Instruksi Kerja)</option>
+                <option value="Formulir">Formulir</option>
+                <option value="Eviden">Eviden</option>
+                <option value="Lampiran">Lampiran</option>
               </select>
             </div>
 
-            <!-- Sub jenis -->
+            <!-- Sub Jenis -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Sub Jenis</label>
-              <select id="sub_jenis"
-                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="">-</option>
-                <option>FMM</option>
-                <option>FK3</option>
-                <option>FAP</option>
+              <label class="form-label">Sub Jenis</label>
+              <select id="sub_jenis" class="form-select">
+                <option value="">-- Tidak Ada --</option>
+                <option value="FMM">FMM - Formulir Mutu</option>
+                <option value="FK3">FK3 - Formulir K3</option>
+                <option value="FAP">FAP - Formulir Anti Penyuapan</option>
               </select>
             </div>
 
             <!-- Kode -->
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Kode Dokumen *</label>
-              <input id="kode_dokumen" required placeholder="FMM-4.5.1-01"
-                     class="w-full px-3 py-2 border rounded-lg font-mono focus:ring-2 focus:ring-blue-500">
-              <p class="text-xs text-slate-500 mt-1">💡 Format: PREFIX-KLAUSUL-NOMOR</p>
+              <label class="form-label">
+                Kode Dokumen <span class="text-red-500">*</span>
+              </label>
+              <input id="kode_dokumen" type="text" required
+                     placeholder="Contoh: FMM-4.5.1-01"
+                     class="form-input font-mono">
+              <div class="form-hint">
+                <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Format: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">PREFIX-KLAUSUL-NOMOR</code>
+              </div>
             </div>
 
             <!-- Judul -->
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Judul Dokumen *</label>
-              <input id="judul" required placeholder="Penilaian Risiko"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">
+                Judul Dokumen <span class="text-red-500">*</span>
+              </label>
+              <input id="judul" type="text" required
+                     placeholder="Contoh: Penilaian Risiko"
+                     class="form-input">
             </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 2: KLASIFIKASI                       -->
+        <!-- ============================================ -->
+        <div class="card-premium fade-in-up fade-in-up-2" id="section2">
+          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-800">Klasifikasi ISO</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Klausul & standar yang relevan</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             <!-- Klausul -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Klausul ISO *</label>
-              <input id="sub_klausul" required placeholder="4.5.1"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">
+                Klausul ISO <span class="text-red-500">*</span>
+              </label>
+              <input id="sub_klausul" type="text" required
+                     placeholder="Contoh: 4.5.1"
+                     class="form-input font-mono">
+              <div class="form-hint">
+                Format: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">X.Y.Z</code> 
+                (contoh: 4.5.1, 9.2)
+              </div>
             </div>
 
             <!-- Standar -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Standar *</label>
-              <div class="flex flex-wrap gap-3 mt-1">
-                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMM"> SMM</label>
-                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMAP"> SMAP</label>
-                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="K3"> K3</label>
-                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMAP-AP"> SMAP-AP</label>
+              <label class="form-label">
+                Standar Berlaku <span class="text-red-500">*</span>
+              </label>
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <label class="standar-item">
+                  <input type="checkbox" class="standar-cb" value="SMM">
+                  <div class="standar-content">
+                    <div class="standar-code">SMM</div>
+                    <div class="standar-name">Mutu</div>
+                  </div>
+                </label>
+                <label class="standar-item">
+                  <input type="checkbox" class="standar-cb" value="SMAP">
+                  <div class="standar-content">
+                    <div class="standar-code">SMAP</div>
+                    <div class="standar-name">Lingkungan</div>
+                  </div>
+                </label>
+                <label class="standar-item">
+                  <input type="checkbox" class="standar-cb" value="K3">
+                  <div class="standar-content">
+                    <div class="standar-code">K3</div>
+                    <div class="standar-name">Keselamatan</div>
+                  </div>
+                </label>
+                <label class="standar-item">
+                  <input type="checkbox" class="standar-cb" value="SMAP-AP">
+                  <div class="standar-content">
+                    <div class="standar-code">SMAP-AP</div>
+                    <div class="standar-name">Anti Suap</div>
+                  </div>
+                </label>
               </div>
             </div>
 
-            <!-- Pemilik -->
+            <!-- Departemen -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Departemen Pemilik *</label>
-              <input id="pemilik_departemen" required placeholder="Quality Control"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">
+                Departemen Pemilik <span class="text-red-500">*</span>
+              </label>
+              <input id="pemilik_departemen" type="text" required
+                     placeholder="Contoh: Quality Control"
+                     class="form-input">
             </div>
 
+            <!-- Email Pemilik -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Email Pemilik</label>
-              <input id="pemilik_email" type="email" placeholder="qc@company.com"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">Email Pemilik</label>
+              <input id="pemilik_email" type="email"
+                     placeholder="qc@company.com"
+                     class="form-input">
             </div>
 
-            <!-- Tgl terbit -->
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 3: JADWAL REVIEW                     -->
+        <!-- ============================================ -->
+        <div class="card-premium fade-in-up fade-in-up-3" id="section3">
+          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Terbit *</label>
-              <input id="tgl_terbit" type="date" required
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <h2 class="font-bold text-slate-800">Jadwal & Review</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Tanggal terbit & jadwal review berkala</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- Tanggal Terbit -->
+            <div>
+              <label class="form-label">
+                Tanggal Terbit <span class="text-red-500">*</span>
+              </label>
+              <input id="tgl_terbit" type="date" required class="form-input">
             </div>
 
+            <!-- Frekuensi Review -->
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Frekuensi Review (bulan)</label>
-              <input id="frekuensi_review_bulan" type="number" value="12" min="1"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">Frekuensi Review</label>
+              <div class="relative">
+                <input id="frekuensi_review_bulan" type="number" value="12" min="1" max="60"
+                       class="form-input pr-16">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm 
+                             text-slate-500 font-semibold pointer-events-none">
+                  bulan
+                </span>
+              </div>
+              <div class="form-hint">
+                Rekomendasi: 12 bulan (review tahunan)
+              </div>
             </div>
 
-            <!-- Kata kunci -->
+            <!-- Kata Kunci -->
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Kata Kunci</label>
-              <input id="kata_kunci" placeholder="risiko, penilaian, kriteria (pisah koma)"
-                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              <label class="form-label">Kata Kunci</label>
+              <input id="kata_kunci" type="text"
+                     placeholder="risiko, penilaian, kriteria (pisahkan dengan koma)"
+                     class="form-input">
+              <div class="form-hint">
+                Kata kunci memudahkan pencarian dokumen di kemudian hari
+              </div>
             </div>
 
             <!-- Keterangan -->
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Keterangan</label>
-              <textarea id="keterangan" rows="2"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+              <label class="form-label">Keterangan</label>
+              <textarea id="keterangan" rows="3"
+                        placeholder="Catatan tambahan (opsional)..."
+                        class="form-input resize-none"></textarea>
             </div>
 
-            <!-- File Upload -->
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">File Dokumen *</label>
-              <div id="dropZone"
-                   class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center 
-                          hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer">
-                <div class="text-4xl mb-2">📎</div>
-                <div class="text-sm text-slate-600">
-                  Drag & drop file di sini, atau <span class="text-blue-600 font-semibold">klik untuk pilih</span>
-                </div>
-                <div class="text-xs text-slate-400 mt-1">PDF, DOCX, XLSX, PNG, JPG (max 10 MB)</div>
-                <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg">
-              </div>
-              <div id="filePreview" class="mt-3 hidden bg-blue-50 p-3 rounded-lg flex items-center gap-3">
-                <span class="text-2xl">📄</span>
-                <div class="flex-1">
-                  <div id="fileName" class="text-sm font-medium"></div>
-                  <div id="fileSize" class="text-xs text-slate-500"></div>
-                </div>
-                <button type="button" id="btnClearFile" class="text-red-500">✕</button>
-              </div>
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 4: FILE UPLOAD                       -->
+        <!-- ============================================ -->
+        <div class="card-premium fade-in-up fade-in-up-4" id="section4">
+          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-800">File Dokumen</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Upload file utama dokumen</p>
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <a href="documents.html" class="px-4 py-2 border rounded-lg hover:bg-slate-50">Batal</a>
-            <button type="submit" id="btnSubmit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold 
-                           disabled:opacity-50 transition">
-              💾 Simpan sebagai Draft
+          <!-- Drop Zone -->
+          <div id="dropZone" class="drop-zone">
+            <div class="drop-zone-inner">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                   style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+              </div>
+              <div class="text-base font-semibold text-slate-700 mb-1">
+                Drag & drop file di sini
+              </div>
+              <div class="text-sm text-slate-500 mb-3">
+                atau <span class="text-blue-600 font-semibold underline">klik untuk pilih file</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
+                <span class="badge-file">PDF</span>
+                <span class="badge-file">DOCX</span>
+                <span class="badge-file">XLSX</span>
+                <span class="badge-file">PNG</span>
+                <span class="badge-file">JPG</span>
+                <span class="text-slate-400 ml-1">Maks 10 MB</span>
+              </div>
+            </div>
+            <input type="file" id="fileInput" class="hidden"
+                   accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg">
+          </div>
+
+          <!-- File Preview -->
+          <div id="filePreview" class="file-preview hidden">
+            <div class="file-preview-icon">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div id="fileName" class="text-sm font-semibold text-slate-800 truncate"></div>
+              <div id="fileSize" class="text-xs text-slate-500 mt-0.5"></div>
+            </div>
+            <button type="button" id="btnClearFile" 
+                    class="w-8 h-8 rounded-lg flex items-center justify-center 
+                           text-red-500 hover:bg-red-50 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- ACTION BUTTONS                               -->
+        <!-- ============================================ -->
+        <div class="card-premium fade-in-up fade-in-up-4">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-xs text-slate-500 flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Dokumen akan disimpan sebagai <b class="text-slate-700">Draft</b>
+            </div>
+            <div class="flex gap-3 w-full sm:w-auto">
+              <a href="documents.html" class="btn-secondary flex-1 sm:flex-initial">
+                Batal
+              </a>
+              <button type="submit" id="btnSubmit" class="btn-gradient flex-1 sm:flex-initial justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                </svg>
+                <span>Simpan Dokumen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
     </main>
   </div>
 
-  <script type="module">
-    import { requireAuth } from './assets/js/auth.js';
-    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
-    import { renderSidebar } from './assets/js/components/sidebar.js';
-    import { apiPost } from './assets/js/api.js';
-    import { fileToBase64, validateFile } from './assets/js/utils.js';
-    import { showToast } from './assets/js/components/toast.js';
-    import { btnLoading, btnReset, showOverlay, hideOverlay, 
-             updateOverlayProgress } from './assets/js/components/loader.js';
-  
-    const user = requireAuth();
-    if (!user) throw new Error('No auth');
-  
-    document.getElementById('navbar').innerHTML = renderNavbar(user);
-    document.getElementById('sidebar').innerHTML = renderSidebar(user, 'upload');
-    attachNavbarEvents();
-  
-    document.getElementById('tgl_terbit').valueAsDate = new Date();
-  
-    // ===== DRAG & DROP =====
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const filePreview = document.getElementById('filePreview');
-    let selectedFile = null;
-  
-    dropZone.onclick = () => fileInput.click();
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-50'); };
-    dropZone.ondragleave = () => dropZone.classList.remove('border-blue-500', 'bg-blue-50');
-    dropZone.ondrop = (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('border-blue-500', 'bg-blue-50');
-      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-    };
-    fileInput.onchange = () => {
-      if (fileInput.files[0]) handleFile(fileInput.files[0]);
-    };
-    document.getElementById('btnClearFile').onclick = (e) => {
-      e.stopPropagation();
-      selectedFile = null;
-      fileInput.value = '';
-      filePreview.classList.add('hidden');
-    };
-  
-    function handleFile(file) {
-      const v = validateFile(file);
-      if (!v.valid) { showToast(v.error, 'error'); return; }
-      selectedFile = file;
-      document.getElementById('fileName').textContent = file.name;
-      document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-      filePreview.classList.remove('hidden');
-    }
-  
-    // ===== SUBMIT =====
-    document.getElementById('uploadForm').onsubmit = async (e) => {
-      e.preventDefault();
-      if (!selectedFile) { showToast('File wajib diupload', 'error'); return; }
-  
-      const btn = document.getElementById('btnSubmit');
-      btnLoading(btn, 'Menyimpan...');
-      showOverlay('Menyimpan dokumen', 'Jangan tutup halaman ini...', true);
-  
-      try {
-        // Step 1: Baca file → base64
-        updateOverlayProgress(20, 'Membaca file...');
-        const base64 = await fileToBase64(selectedFile);
-  
-        // Step 2: Siapkan payload
-        updateOverlayProgress(40, 'Menyiapkan data...');
-        const standar = Array.from(document.querySelectorAll('.standar-cb:checked'))
-          .map(cb => cb.value).join(',');
-  
-        const payload = {
-          kode_dokumen: document.getElementById('kode_dokumen').value.trim(),
-          judul: document.getElementById('judul').value.trim(),
-          jenis: document.getElementById('jenis').value,
-          sub_jenis: document.getElementById('sub_jenis').value,
-          klausul_utama: document.getElementById('sub_klausul').value.split('.')[0],
-          sub_klausul: document.getElementById('sub_klausul').value.trim(),
-          standar,
-          pemilik_departemen: document.getElementById('pemilik_departemen').value.trim(),
-          pemilik_email: document.getElementById('pemilik_email').value.trim(),
-          tgl_terbit: document.getElementById('tgl_terbit').value,
-          frekuensi_review_bulan: Number(document.getElementById('frekuensi_review_bulan').value),
-          kata_kunci: document.getElementById('kata_kunci').value.trim(),
-          keterangan: document.getElementById('keterangan').value.trim(),
-          fileName: selectedFile.name,
-          mimeType: selectedFile.type,
-          fileBase64: base64
-        };
-  
-        // Step 3: Upload ke server
-        updateOverlayProgress(60, 'Mengupload ke server...');
-        await apiPost('createDocument', payload);
-  
-        // Step 4: Selesai
-        updateOverlayProgress(100, '✅ Berhasil!');
-        await new Promise(r => setTimeout(r, 600));
-  
-        hideOverlay();
-        showToast('✅ Dokumen berhasil disimpan!', 'success');
-        setTimeout(() => location.href = 'documents.html', 1200);
-  
-      } catch (err) {
-        hideOverlay();
-        btnReset(btn);
-        showToast(err.message || 'Gagal upload', 'error');
-        console.error(err);
-      }
-    };
-  </script>
+  <script src="assets/js/pages/upload.js" type="module"></script>
 </body>
 </html>
