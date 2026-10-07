@@ -230,6 +230,7 @@ function updateSubJenis(jenis) {
   var wrapper = document.getElementById('subJenisWrapper');
   var sel = document.getElementById('sub_jenis');
   var hint = document.getElementById('subJenisHint');
+  var kodeWrapper = document.getElementById('kodeWrapper');  // ← TAMBAH
 
   if (!wrapper || !sel) {
     console.error('[upload] subJenisWrapper atau sub_jenis tidak ada');
