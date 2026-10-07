@@ -310,14 +310,20 @@ function renderTable(docs) {
         '</div>' +
       '</td>' +
 
-      // Jenis
+      // Klausul ISO
       '<td>' +
-        '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg ' + jenisCls + '">' +
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="' + jenisIcon + '"/>' +
-          '</svg>' +
-          escapeHtml(d.jenis || '-') +
-        '</span>' +
+        '<div class="flex flex-col gap-1">' +
+          '<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ' +
+                'bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 border border-blue-100 w-fit">' +
+            '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
+            '</svg>' +
+            escapeHtml(d.sub_klausul || d.klausul_utama || '-') +
+          '</span>' +
+          (d.jenis 
+            ? '<span class="text-[10px] text-slate-400 font-medium">' + escapeHtml(d.jenis) + '</span>'
+            : '') +
+        '</div>' +
       '</td>' +
 
       // Versi
