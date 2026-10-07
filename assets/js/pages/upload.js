@@ -1,17 +1,31 @@
 /**
- * Upload Page Controller - REVISED ROBUST
- * ----------------------------------------
- * - Init dipisah dengan try/catch
- * - Navbar/sidebar render duluan
- * - Console log untuk debug
+ * Upload Page Controller - FULL ROBUST
+ * -------------------------------------
+ * - Semua helper kritis didefinisikan lokal (tidak bergantung utils)
+ * - Init dibungkus try/catch dengan console.log detail
+ * - Navbar/sidebar render duluan sebelum yang lain
  */
 import { requireAuth } from '../auth.js';
 import { renderNavbar, attachNavbarEvents } from '../components/navbar.js';
 import { renderSidebar } from '../components/sidebar.js';
 import { apiPost, apiGet } from '../api.js';
-import { fileToBase64, validateFile, getQuery, formatSize, delay } from '../utils.js';
+import { fileToBase64, validateFile, getQuery } from '../utils.js';
 import { showToast } from '../components/toast.js';
 import { btnLoading, btnReset, showOverlay, hideOverlay, updateOverlayProgress } from '../components/loader.js';
+
+// ============================================================
+// LOCAL HELPERS (tidak bergantung utils)
+// ============================================================
+function formatSize(bytes) {
+  if (!bytes && bytes !== 0) return '-';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function delay(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
 
 // ============================================================
 // KONFIGURASI
@@ -70,79 +84,116 @@ var state = {
 };
 
 // ============================================================
-// INIT (dipanggil langsung)
+// INIT
 // ============================================================
-(function init() {
-  console.log('[upload.js] Init mulai...');
+function initPage() {
+  console.log('[upload] ==========================================');
+  console.log('[upload] Init mulai...');
+
+  // ===== STEP 1: AUTH =====
+  var user;
+  try {
+    user = requireAuth();
+    console.log('[upload] requireAuth() returned:', user);
+  } catch (e) {
+    console.error('[upload] requireAuth() GAGAL:', e);
+    return;
+  }
+
+  if (!user) {
+    console.warn('[upload] No user, redirect happened di requireAuth()');
+    return;
+  }
+  state.user = user;
+  console.log('[upload] ✅ User OK:', user.email, '| Role:', user.role);
+
+  // ===== STEP 2: RENDER NAVBAR =====
+  var navbarEl = document.getElementById('navbar');
+  if (navbarEl) {
+    try {
+      navbarEl.innerHTML = renderNavbar(user);
+      console.log('[upload] ✅ Navbar rendered');
+    } catch (e) {
+      console.error('[upload] ❌ renderNavbar GAGAL:', e);
+    }
+  } else {
+    console.error('[upload] ❌ #navbar element TIDAK DITEMUKAN di HTML');
+  }
+
+  // ===== STEP 3: RENDER SIDEBAR =====
+  var sidebarEl = document.getElementById('sidebar');
+  if (sidebarEl) {
+    try {
+      sidebarEl.innerHTML = renderSidebar(user, 'upload');
+      console.log('[upload] ✅ Sidebar rendered');
+    } catch (e) {
+      console.error('[upload] ❌ renderSidebar GAGAL:', e);
+    }
+  } else {
+    console.error('[upload] ❌ #sidebar element TIDAK DITEMUKAN di HTML');
+  }
+
+  // ===== STEP 4: NAVBAR EVENTS =====
+  try {
+    attachNavbarEvents();
+    console.log('[upload] ✅ Navbar events attached');
+  } catch (e) {
+    console.error('[upload] ❌ attachNavbarEvents GAGAL:', e);
+  }
+
+  // ===== STEP 5: DEFAULT TANGGAL =====
+  var tglEl = document.getElementById('tgl_terbit');
+  if (tglEl) {
+    tglEl.valueAsDate = new Date();
+    console.log('[upload] ✅ Tanggal default di-set');
+  }
+
+  // ===== STEP 6: MODE EDIT =====
+  state.docId = getQuery('id');
+  if (state.docId) {
+    state.mode = 'edit';
+    console.log('[upload] Mode EDIT, docId:', state.docId);
+    loadExistingDocument();
+  }
+
+  // ===== STEP 7: SETUP EVENTS =====
+  try {
+    setupJenisChange();
+    console.log('[upload] ✅ Jenis change listener terpasang');
+  } catch (e) {
+    console.error('[upload] ❌ setupJenisChange GAGAL:', e);
+  }
 
   try {
-    // ===== 1. Cek auth =====
-    var user = requireAuth();
-    if (!user) {
-      console.warn('[upload.js] User tidak authenticated, redirect...');
-      return;
-    }
-    state.user = user;
-    console.log('[upload.js] User OK:', user.email, '| Role:', user.role);
-
-    // ===== 2. Render navbar & sidebar DULUAN =====
-    var navbarEl = document.getElementById('navbar');
-    var sidebarEl = document.getElementById('sidebar');
-
-    if (navbarEl) {
-      navbarEl.innerHTML = renderNavbar(user);
-      console.log('[upload.js] Navbar rendered');
-    } else {
-      console.error('[upload.js] #navbar element TIDAK DITEMUKAN');
-    }
-
-    if (sidebarEl) {
-      sidebarEl.innerHTML = renderSidebar(user, 'upload');
-      console.log('[upload.js] Sidebar rendered');
-    } else {
-      console.error('[upload.js] #sidebar element TIDAK DITEMUKAN');
-    }
-
-    // ===== 3. Attach navbar events =====
-    try {
-      attachNavbarEvents();
-      console.log('[upload.js] Navbar events attached');
-    } catch (e) {
-      console.error('[upload.js] Gagal attach navbar events:', e);
-    }
-
-    // ===== 4. Set default tanggal =====
-    var tglEl = document.getElementById('tgl_terbit');
-    if (tglEl) tglEl.valueAsDate = new Date();
-
-    // ===== 5. Cek mode edit =====
-    state.docId = getQuery('id');
-    if (state.docId) {
-      state.mode = 'edit';
-      console.log('[upload.js] Mode EDIT, docId:', state.docId);
-      loadExistingDocument();
-    }
-
-    // ===== 6. Setup events =====
-    setupJenisChange();
     setupDropZone();
-    setupStepIndicator();
-    setupSubmit();
-
-    console.log('[upload.js] Init SELESAI ✅');
-
+    console.log('[upload] ✅ Drop zone terpasang');
   } catch (e) {
-    console.error('[upload.js] FATAL ERROR di init:', e);
-    // Tampilkan pesan error ke user
-    document.body.insertAdjacentHTML('afterbegin',
-      '<div style="position:fixed;top:0;left:0;right:0;background:#fee2e2;' +
-      'color:#991b1b;padding:12px;text-align:center;z-index:9999;' +
-      'font-family:sans-serif;font-size:14px;border-bottom:1px solid #fca5a5;">' +
-      '⚠️ Terjadi error saat memuat halaman. Buka Console (F12) untuk detail.' +
-      '</div>'
-    );
+    console.error('[upload] ❌ setupDropZone GAGAL:', e);
   }
-})();
+
+  try {
+    setupStepIndicator();
+    console.log('[upload] ✅ Step indicator terpasang');
+  } catch (e) {
+    console.error('[upload] ❌ setupStepIndicator GAGAL:', e);
+  }
+
+  try {
+    setupSubmit();
+    console.log('[upload] ✅ Submit handler terpasang');
+  } catch (e) {
+    console.error('[upload] ❌ setupSubmit GAGAL:', e);
+  }
+
+  console.log('[upload] ========== INIT SELESAI ✅ ==========');
+}
+
+// Jalankan init setelah DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPage);
+} else {
+  initPage();
+}
 
 // ============================================================
 // JENIS → SUB JENIS
@@ -150,15 +201,13 @@ var state = {
 function setupJenisChange() {
   var selJenis = document.getElementById('jenis');
   if (!selJenis) {
-    console.error('[upload.js] #jenis TIDAK DITEMUKAN');
+    console.error('[upload] #jenis tidak ditemukan');
     return;
   }
 
-  console.log('[upload.js] Pasang listener untuk jenis change');
-
   selJenis.addEventListener('change', function() {
     var jenis = selJenis.value;
-    console.log('[upload.js] Jenis berubah:', jenis);
+    console.log('[upload] Jenis berubah:', jenis);
 
     // Update placeholder kode
     var kodeInput = document.getElementById('kode_dokumen');
@@ -173,7 +222,6 @@ function setupJenisChange() {
       kodeHint.textContent = KODE_FORMAT_HINT[jenis] || 'Format: PREFIX-KLAUSUL-NOMOR';
     }
 
-    // Update sub jenis
     updateSubJenis(jenis);
   });
 }
@@ -184,24 +232,22 @@ function updateSubJenis(jenis) {
   var hint = document.getElementById('subJenisHint');
 
   if (!wrapper || !sel) {
-    console.error('[upload.js] subJenisWrapper atau sub_jenis TIDAK DITEMUKAN');
+    console.error('[upload] subJenisWrapper atau sub_jenis tidak ada');
     return;
   }
 
   var options = SUB_JENIS_MAP[jenis];
+  console.log('[upload] updateSubJenis:', jenis, '→', options);
 
   if (!options) {
-    // Sembunyikan
     wrapper.classList.add('hidden');
     sel.value = '';
     sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>';
     if (hint) hint.textContent = '';
     sel.removeAttribute('required');
-    console.log('[upload.js] Sub jenis disembunyikan untuk:', jenis);
     return;
   }
 
-  // Tampilkan
   wrapper.classList.remove('hidden');
   sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>' +
     options.map(function(o) {
@@ -209,16 +255,14 @@ function updateSubJenis(jenis) {
     }).join('');
   sel.setAttribute('required', 'required');
   if (hint) hint.textContent = SUB_JENIS_HINT[jenis] || '';
-  console.log('[upload.js] Sub jenis ditampilkan untuk:', jenis, '→', options.join(', '));
 }
 
 // ============================================================
-// LOAD EXISTING (EDIT MODE)
+// LOAD EXISTING (EDIT)
 // ============================================================
 async function loadExistingDocument() {
   try {
     showOverlay('Memuat dokumen', 'Mohon tunggu...');
-
     var data = await apiGet('getDocumentById', { doc_id: state.docId });
     state.existingDoc = data.document;
 
@@ -239,7 +283,6 @@ async function loadExistingDocument() {
 function fillForm(d) {
   setValue('jenis', d.jenis || '');
 
-  // Trigger sub_jenis
   if (d.jenis && SUB_JENIS_MAP[d.jenis]) {
     updateSubJenis(d.jenis);
     setTimeout(function() {
@@ -252,7 +295,6 @@ function fillForm(d) {
   setValue('sub_klausul', d.sub_klausul || '');
   setValue('kata_kunci', d.kata_kunci || '');
   setValue('keterangan', d.keterangan || '');
-  setValue('frekuensi_review_bulan', d.frekuensi_review_bulan || 12);
 
   if (d.tgl_terbit) {
     var tgl = new Date(d.tgl_terbit);
@@ -282,10 +324,7 @@ function setupDropZone() {
   var filePreview = document.getElementById('filePreview');
   var btnClear = document.getElementById('btnClearFile');
 
-  if (!dropZone || !fileInput) {
-    console.error('[upload.js] dropZone atau fileInput tidak ada');
-    return;
-  }
+  if (!dropZone || !fileInput) return;
 
   dropZone.addEventListener('click', function() { fileInput.click(); });
 
@@ -416,7 +455,6 @@ function validateForm() {
     }
   }
 
-  // Validasi sub jenis kalau visible
   var subWrapper = document.getElementById('subJenisWrapper');
   if (subWrapper && !subWrapper.classList.contains('hidden')) {
     var sub = document.getElementById('sub_jenis').value;
@@ -431,7 +469,7 @@ function validateForm() {
 }
 
 // ============================================================
-// CREATE & UPDATE
+// CREATE / UPDATE
 // ============================================================
 async function createDocument() {
   showOverlay('Menyimpan dokumen', 'Jangan tutup halaman...');
@@ -507,7 +545,7 @@ function buildPayload() {
     pemilik_departemen:     '-',
     pemilik_email:          '',
     tgl_terbit:             document.getElementById('tgl_terbit').value,
-    frekuensi_review_bulan: Number(document.getElementById('frekuensi_review_bulan').value) || 12,
+    frekuensi_review_bulan: 12,
     kata_kunci:             document.getElementById('kata_kunci').value.trim(),
     keterangan:             document.getElementById('keterangan').value.trim()
   };
