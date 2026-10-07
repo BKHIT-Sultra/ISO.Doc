@@ -1,48 +1,149 @@
 /**
- * Navbar Atas - Premium Version
+ * Navbar Atas - Premium Version (No Search)
+ * -----------------------------------------
+ * Ornamen: Page Title (kiri) + Greeting (tengah) + User (kanan)
  */
 import { logout } from '../auth.js';
-import { debounce } from '../utils.js';
-import { apiGet } from '../api.js';
 
+// ============================================================
+// KONFIGURASI HALAMAN
+// ============================================================
+var PAGE_MAP = {
+  'dashboard':        { title: 'Dashboard',        icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  'documents':        { title: 'Dokumen',          icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  'document-detail':  { title: 'Detail Dokumen',   icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  'upload':           { title: 'Upload Dokumen',   icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' },
+  'approval':         { title: 'Approval',         icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  'review-reminder':  { title: 'Reminder Review',  icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+  'audit-trail':      { title: 'Audit Trail',      icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2' },
+  'users':            { title: 'Pengguna',         icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }
+};
+
+// ============================================================
+// DETECT HALAMAN AKTIF
+// ============================================================
+function getCurrentPage() {
+  var path = window.location.pathname;
+  var file = path.substring(path.lastIndexOf('/') + 1).replace('.html', '');
+  return PAGE_MAP[file] || { title: 'ISO Doc Management', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' };
+}
+
+// ============================================================
+// GREETING BERDASARKAN JAM
+// ============================================================
+function getGreeting() {
+  var jam = new Date().getHours();
+  if (jam < 11) return 'Selamat pagi';
+  if (jam < 15) return 'Selamat siang';
+  if (jam < 19) return 'Selamat sore';
+  return 'Selamat malam';
+}
+
+// ============================================================
+// TANGGAL FORMAT INDONESIA
+// ============================================================
+function getDateStr() {
+  var d = new Date();
+  var hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][d.getDay()];
+  var bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'][d.getMonth()];
+  return hari + ', ' + d.getDate() + ' ' + bulan + ' ' + d.getFullYear();
+}
+
+// ============================================================
+// RENDER NAVBAR
+// ============================================================
 export function renderNavbar(user) {
+  var page = getCurrentPage();
+  var greeting = getGreeting();
+  var firstName = (user.nama || 'User').split(' ')[0];
+
   return `
-    <header class="h-16 border-b border-slate-200/60 relative" 
+    <header class="h-16 border-b border-slate-200/60 relative overflow-hidden" 
             style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);">
-      <div class="flex items-center justify-between px-4 lg:px-6 h-full">
+      
+      <!-- ===== ORNAMEN SUBTLE ===== -->
+      <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <!-- Blob gradient kiri -->
+        <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full opacity-[0.06]"
+             style="background: radial-gradient(circle, #2563eb, transparent 70%);"></div>
+        <!-- Blob gradient tengah -->
+        <div class="absolute -top-20 left-1/2 w-64 h-64 rounded-full opacity-[0.04] -translate-x-1/2"
+             style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
+        <!-- Blob gradient kanan -->
+        <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.06]"
+             style="background: radial-gradient(circle, #8b5cf6, transparent 70%);"></div>
+      </div>
+
+      <!-- ===== KONTEN ===== -->
+      <div class="relative flex items-center justify-between px-4 lg:px-6 h-full gap-4">
         
-        <!-- KIRI: Hamburger + Search -->
-        <div class="flex items-center gap-3 flex-1">
+        <!-- KIRI: Hamburger (mobile) + Page Info -->
+        <div class="flex items-center gap-3 min-w-0 flex-shrink">
+          
+          <!-- Hamburger (mobile) -->
           <button id="toggleSidebar" 
                   class="lg:hidden w-10 h-10 flex items-center justify-center 
                          text-slate-600 hover:text-blue-600 hover:bg-slate-100 
-                         rounded-xl transition">
+                         rounded-xl transition flex-shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
 
-          <!-- Search -->
-          <div class="relative flex-1 max-w-md">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          <!-- Page Icon + Title -->
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                 style="background: linear-gradient(135deg, #2563eb, #6366f1);">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="${page.icon}"/>
               </svg>
             </div>
-            <input id="globalSearch" type="text"
-                   placeholder="Cari dokumen (kode / judul)..."
-                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 
-                          rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 
-                          focus:border-blue-500 focus:bg-white text-sm transition">
-            <div id="searchResults"
-                 class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl 
-                        border border-slate-200 max-h-96 overflow-auto hidden z-50"></div>
+            <div class="min-w-0">
+              <div class="text-sm font-bold text-slate-800 truncate leading-tight">
+                ${page.title}
+              </div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold leading-tight hidden sm:block">
+                ISO Doc Management
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- KANAN: User info -->
-        <div class="flex items-center gap-3 ml-4">
+        <!-- TENGAH: Greeting (hidden di mobile) -->
+        <div class="hidden md:flex items-center gap-3 flex-1 justify-center min-w-0">
+          
+          <!-- Divider kiri -->
+          <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
+          
+          <!-- Greeting -->
+          <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50/80 border border-slate-100">
+            <!-- Dot pulse -->
+            <span class="relative flex h-2 w-2 flex-shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            
+            <span class="text-sm text-slate-700 truncate">
+              <span class="font-semibold">${greeting},</span>
+              <span class="text-slate-500">${firstName}</span>
+            </span>
+            
+            <span class="text-slate-300 hidden lg:inline">&middot;</span>
+            
+            <span class="text-xs text-slate-500 hidden lg:inline-flex items-center gap-1.5">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              ${getDateStr()}
+            </span>
+          </div>
+
+          <!-- Divider kanan -->
+          <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
+        </div>
+
+        <!-- KANAN: Role + User Dropdown -->
+        <div class="flex items-center gap-2 flex-shrink-0">
           
           <!-- Role Badge -->
           <span class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 
@@ -116,22 +217,25 @@ export function renderNavbar(user) {
   `;
 }
 
+// ============================================================
+// ATTACH EVENTS
+// ============================================================
 export function attachNavbarEvents() {
   // ===== USER DROPDOWN =====
-  const wrapper = document.getElementById('userMenuWrapper');
-  const btn = document.getElementById('userMenuBtn');
-  const dropdown = document.getElementById('userMenuDropdown');
+  var wrapper = document.getElementById('userMenuWrapper');
+  var btn = document.getElementById('userMenuBtn');
+  var dropdown = document.getElementById('userMenuDropdown');
 
   if (btn && dropdown && wrapper) {
-    let hideTimer = null;
+    var hideTimer = null;
 
-    const showDropdown = () => {
+    var showDropdown = function() {
       clearTimeout(hideTimer);
       dropdown.classList.remove('hidden');
     };
 
-    const hideDropdown = () => {
-      hideTimer = setTimeout(() => {
+    var hideDropdown = function() {
+      hideTimer = setTimeout(function() {
         dropdown.classList.add('hidden');
       }, 250);
     };
@@ -139,12 +243,12 @@ export function attachNavbarEvents() {
     wrapper.addEventListener('mouseenter', showDropdown);
     wrapper.addEventListener('mouseleave', hideDropdown);
 
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', function(e) {
       e.stopPropagation();
       dropdown.classList.toggle('hidden');
     });
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
       if (!wrapper.contains(e.target)) {
         dropdown.classList.add('hidden');
       }
@@ -152,56 +256,15 @@ export function attachNavbarEvents() {
   }
 
   // ===== LOGOUT =====
-  const logoutBtn = document.getElementById('btnLogout');
+  var logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.onclick = logout;
 
   // ===== TOGGLE SIDEBAR (mobile) =====
-  const toggle = document.getElementById('toggleSidebar');
+  var toggle = document.getElementById('toggleSidebar');
   if (toggle) {
-    toggle.onclick = () => {
-      const sb = document.getElementById('sidebar');
+    toggle.onclick = function() {
+      var sb = document.getElementById('sidebar');
       if (sb) sb.classList.toggle('hidden');
     };
-  }
-
-  // ===== GLOBAL SEARCH =====
-  const input = document.getElementById('globalSearch');
-  const results = document.getElementById('searchResults');
-
-  if (input && results) {
-    const doSearch = debounce(async () => {
-      const q = input.value.trim();
-      if (q.length < 2) {
-        results.classList.add('hidden');
-        return;
-      }
-      try {
-        const data = await apiGet('searchDocuments', { q });
-        if (!data.length) {
-          results.innerHTML = '<div class="p-4 text-sm text-slate-500 text-center">Tidak ada hasil</div>';
-        } else {
-          results.innerHTML = data.map(d => `
-            <a href="document-detail.html?id=${d.doc_id}"
-               class="block px-4 py-3 hover:bg-slate-50 border-b border-slate-100 
-                      last:border-b-0 transition">
-              <div class="text-sm font-semibold text-slate-800">${d.judul}</div>
-              <div class="text-xs text-slate-500 font-mono mt-0.5">
-                ${d.kode_dokumen} &middot; ${d.jenis}
-              </div>
-            </a>
-          `).join('');
-        }
-        results.classList.remove('hidden');
-      } catch (e) {
-        results.classList.add('hidden');
-      }
-    }, 400);
-
-    input.addEventListener('input', doSearch);
-    document.addEventListener('click', (e) => {
-      if (!input.contains(e.target) && !results.contains(e.target)) {
-        results.classList.add('hidden');
-      }
-    });
   }
 }
