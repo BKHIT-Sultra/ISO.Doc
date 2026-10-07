@@ -599,3 +599,30 @@ html { scroll-behavior: smooth; }
   scrollbar-width: thin;
   scrollbar-color: #e2e8f0 transparent;
 }
+
+/* ============================================================
+   PERIODE FILTER BUTTONS
+   ============================================================ */
+.periode-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.periode-btn:hover:not(.active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.periode-btn.active {
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
