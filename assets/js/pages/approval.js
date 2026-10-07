@@ -84,19 +84,17 @@ function attachItemEvents() {
   });
 }
 
+import { btnLoading, btnReset } from '../components/loader.js';
+
 function approveItem(approvalId, docId) {
   showModal({
     title: 'Setujui Dokumen',
-    content: `
-      <label class="block text-sm font-medium mb-1">Tanggal Berlaku</label>
-      <input id="m-tgl" type="date" value="${new Date().toISOString().split('T')[0]}"
-             class="w-full px-3 py-2 border rounded-lg mb-3">
-      <label class="block text-sm font-medium mb-1">Komentar (opsional)</label>
-      <textarea id="m-komentar" rows="2" 
-                class="w-full px-3 py-2 border rounded-lg"></textarea>
-    `,
+    content: `...`,
     confirmText: 'Setujui',
     onConfirm: async (overlay) => {
+      const confirmBtn = overlay.querySelector('[data-confirm]');
+      btnLoading(confirmBtn, 'Menyimpan...');
+
       const tgl_berlaku = overlay.querySelector('#m-tgl').value;
       const komentar = overlay.querySelector('#m-komentar').value;
 
@@ -112,6 +110,7 @@ function approveItem(approvalId, docId) {
         await loadApprovals();
       } catch (e) {
         showToast(e.message, 'error');
+        btnReset(confirmBtn);
       }
     }
   });
