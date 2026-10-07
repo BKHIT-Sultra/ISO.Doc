@@ -6,78 +6,185 @@
   <title>Dokumen - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
+<body class="bg-slate-50 min-h-screen">
   <div id="navbar"></div>
 
   <div class="flex">
     <div id="sidebar"></div>
 
-    <main class="flex-1 p-6">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-800">📁 Daftar Dokumen</h1>
-          <p class="text-sm text-slate-500 mt-1">
-            <span id="totalDocs">0</span> dokumen terdaftar
-          </p>
+    <main class="flex-1 min-w-0 p-4 lg:p-8">
+
+      <!-- ============================================== -->
+      <!-- PAGE HEADER                                     -->
+      <!-- ============================================== -->
+      <div class="mb-8 fade-in-up">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+                   style="background: linear-gradient(135deg, #2563eb, #6366f1);">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <div>
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-800 leading-tight">
+                  Daftar Dokumen
+                </h1>
+                <p class="text-slate-500 text-sm mt-0.5">
+                  <span id="totalDocs" class="font-semibold text-slate-700">0</span> dokumen terdaftar
+                </p>
+              </div>
+            </div>
+          </div>
+          <a href="upload.html" 
+             class="btn-gradient">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Dokumen
+          </a>
         </div>
-        <a href="upload.html" class="bg-blue-600 hover:bg-blue-700 text-white 
-                                   px-4 py-2 rounded-lg text-sm font-semibold transition">
-          + Tambah Dokumen
-        </a>
       </div>
 
-      <!-- Filter Bar -->
-      <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-slate-100">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <select id="filterJenis" class="px-3 py-2 border rounded-lg text-sm">
-            <option value="">Semua Jenis</option>
-          </select>
-          <select id="filterKlausul" class="px-3 py-2 border rounded-lg text-sm">
-            <option value="">Semua Klausul</option>
-            <option value="4">Klausul 4 - Konteks Organisasi</option>
-            <option value="5">Klausul 5 - Kepemimpinan</option>
-            <option value="6">Klausul 6 - Perencanaan</option>
-            <option value="7">Klausul 7 - Pendukung</option>
-            <option value="8">Klausul 8 - Operasi</option>
-            <option value="9">Klausul 9 - Evaluasi Kinerja</option>
-            <option value="10">Klausul 10 - Peningkatan</option>
-          </select>
-          <select id="filterStatus" class="px-3 py-2 border rounded-lg text-sm">
-            <option value="">Semua Status</option>
-            <option value="Draft">Draft</option>
-            <option value="Review">Review</option>
-            <option value="Approved">Approved</option>
-            <option value="Obsolete">Obsolete</option>
-          </select>
-          <input id="searchBox" type="text" placeholder="🔍 Cari kode/judul..."
-                 class="px-3 py-2 border rounded-lg text-sm">
-          <button id="btnReset" class="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">
-            ↺ Reset Filter
+      <!-- ============================================== -->
+      <!-- MINI STATS                                     -->
+      <!-- ============================================== -->
+      <div id="miniStats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 fade-in-up fade-in-up-1"></div>
+
+      <!-- ============================================== -->
+      <!-- FILTER BAR                                     -->
+      <!-- ============================================== -->
+      <div class="card-premium mb-6 fade-in-up fade-in-up-2">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <h3 class="text-sm font-bold text-slate-700">Filter & Pencarian</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          
+          <!-- Jenis -->
+          <div class="relative">
+            <select id="filterJenis" 
+                    class="appearance-none w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 
+                           rounded-xl text-sm text-slate-700 font-medium
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/30 
+                           focus:border-blue-500 focus:bg-white transition cursor-pointer">
+              <option value="">Semua Jenis</option>
+            </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+
+          <!-- Klausul -->
+          <div class="relative">
+            <select id="filterKlausul"
+                    class="appearance-none w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 
+                           rounded-xl text-sm text-slate-700 font-medium
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/30 
+                           focus:border-blue-500 focus:bg-white transition cursor-pointer">
+              <option value="">Semua Klausul</option>
+              <option value="4">Klausul 4 - Konteks Organisasi</option>
+              <option value="5">Klausul 5 - Kepemimpinan</option>
+              <option value="6">Klausul 6 - Perencanaan</option>
+              <option value="7">Klausul 7 - Pendukung</option>
+              <option value="8">Klausul 8 - Operasi</option>
+              <option value="9">Klausul 9 - Evaluasi Kinerja</option>
+              <option value="10">Klausul 10 - Peningkatan</option>
+            </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+
+          <!-- Status -->
+          <div class="relative">
+            <select id="filterStatus"
+                    class="appearance-none w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 
+                           rounded-xl text-sm text-slate-700 font-medium
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/30 
+                           focus:border-blue-500 focus:bg-white transition cursor-pointer">
+              <option value="">Semua Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Review">Review</option>
+              <option value="Approved">Approved</option>
+              <option value="Obsolete">Obsolete</option>
+            </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+
+          <!-- Search -->
+          <div class="relative lg:col-span-1">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <input id="searchBox" type="text" 
+                   placeholder="Cari kode / judul..."
+                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 
+                          rounded-xl text-sm text-slate-700 placeholder-slate-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500/30 
+                          focus:border-blue-500 focus:bg-white transition">
+          </div>
+
+          <!-- Reset -->
+          <button id="btnReset"
+                  class="px-4 py-2.5 text-sm font-semibold text-slate-600 
+                         bg-white border border-slate-200 rounded-xl 
+                         hover:bg-slate-50 hover:border-slate-300 
+                         focus:outline-none focus:ring-2 focus:ring-slate-400/30 
+                         transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Reset
           </button>
         </div>
       </div>
 
-      <!-- Tabel -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <!-- ============================================== -->
+      <!-- TABEL DOKUMEN                                  -->
+      <!-- ============================================== -->
+      <div class="card-premium !p-0 overflow-hidden fade-in-up fade-in-up-3">
+        
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-slate-50 border-b border-slate-100">
-              <tr class="text-left text-xs font-semibold text-slate-600 uppercase">
-                <th class="p-3">Kode</th>
-                <th class="p-3">Judul</th>
-                <th class="p-3">Jenis</th>
-                <th class="p-3">Versi</th>
-                <th class="p-3">Status</th>
-                <th class="p-3">Terbit</th>
-                <th class="p-3 text-right">Aksi</th>
+          <table class="table-premium">
+            <thead>
+              <tr>
+                <th>Kode</th>
+                <th>Judul</th>
+                <th>Jenis</th>
+                <th class="text-center">Versi</th>
+                <th>Status</th>
+                <th>Terbit</th>
+                <th class="text-right">Aksi</th>
               </tr>
             </thead>
             <tbody id="docTableBody"></tbody>
           </table>
         </div>
-        <div id="pagination" class="p-4 border-t border-slate-100 flex justify-center"></div>
+
+        <div id="pagination" 
+             class="px-6 py-4 border-t border-slate-100 flex justify-center flex-wrap gap-2"></div>
       </div>
+
     </main>
   </div>
 
