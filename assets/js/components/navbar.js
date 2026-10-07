@@ -7,7 +7,7 @@ import { apiGet } from '../api.js';
 
 export function renderNavbar(user) {
   return `
-    <header class="h-16 border-b border-slate-200/60" 
+    <header class="h-16 border-b border-slate-200/60 relative" 
             style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);">
       <div class="flex items-center justify-between px-4 lg:px-6 h-full">
         
@@ -77,7 +77,8 @@ export function renderNavbar(user) {
             <!-- Dropdown Menu -->
             <div id="userMenuDropdown"
                  class="hidden absolute right-0 top-full mt-2 bg-white border border-slate-200 
-                        rounded-2xl shadow-2xl min-w-[240px] z-50 overflow-hidden">
+                        rounded-2xl min-w-[260px] z-[100] overflow-hidden"
+                 style="box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.25);">
               <div class="p-4 border-b border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50">
                 <div class="flex items-center gap-3">
                   <div class="w-12 h-12 rounded-xl flex items-center justify-center 
