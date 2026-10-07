@@ -501,15 +501,45 @@ function renderActions() {
   var u = state.user;
   var buttons = [];
 
-  // Edit (Admin/Editor, status Draft atau Review)
-  if (['Admin', 'Editor'].indexOf(u.role) !== -1 && 
-      ['Draft', 'Review'].indexOf(d.status) !== -1) {
+  // Edit Dokumen — sesuai role & status
+  var canEdit = false;
+  var lockReason = '';
+  
+  if (u.role === 'Admin') {
+    canEdit = true;
+  } else if (u.role === 'Editor') {
+    if (d.status === 'Draft' || d.status === 'Review') {
+      canEdit = true;
+    } else if (d.status === 'Approved') {
+      lockReason = 'Dokumen sudah disetujui. Hanya Admin yang dapat mengubah.';
+    } else {
+      lockReason = 'Dokumen dengan status ' + d.status + ' tidak dapat diedit.';
+    }
+  } else {
+    lockReason = 'Role Anda tidak memiliki akses edit dokumen.';
+  }
+  
+  if (canEdit) {
     buttons.push(actionLink(
       'upload.html?id=' + d.doc_id,
       'slate',
       'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
       'Edit Dokumen'
     ));
+  } else if (lockReason) {
+    // Tampilkan tombol terkunci dengan alasan
+    buttons.push(
+      '<div class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 ' +
+                  'flex items-start gap-2.5 text-left">' +
+        '<svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>' +
+        '</svg>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="text-xs font-bold text-slate-600">Dokumen Terkunci</div>' +
+          '<div class="text-xs text-slate-500 mt-0.5">' + escapeHtml(lockReason) + '</div>' +
+        '</div>' +
+      '</div>'
+    );
   }
 
   // Ajukan Review
