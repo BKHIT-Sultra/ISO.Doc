@@ -1,18 +1,18 @@
 /**
  * Halaman Daftar Dokumen
  * ----------------------
- * Premium version dengan mini stats, tabel modern, dan skeleton loader
+ * Kolom: Kode | Judul (+klausul) | Jenis Dokumen | Versi | Status | Terbit | Aksi
  */
 import { apiGet } from '../api.js';
 import { formatDate, escapeHtml, debounce } from '../utils.js';
-import { STATUS_BADGE, CONFIG, JENIS } from '../config.js';
+import { STATUS_BADGE, CONFIG, JENIS, JENIS_BADGE } from '../config.js';
 import { skeletonTable } from '../components/loader.js';
 
 // ============================================================
 // STATE
 // ============================================================
 let state = {
-  user: null,                     // ← User yang login
+  user: null,
   page: 1,
   limit: CONFIG.ITEMS_PER_PAGE,
   filters: {
@@ -21,14 +21,13 @@ let state = {
     klausul: '',
     q: ''
   },
-  klausulMap: {}                  // ← Map: klausul_id → judul_klausul
+  klausulMap: {}
 };
 
 // ============================================================
 // INIT
 // ============================================================
 export async function initDocuments(user) {
-  // Simpan user ke state (untuk tombol edit conditional)
   state.user = user;
 
   // Populate dropdown jenis
@@ -42,13 +41,13 @@ export async function initDocuments(user) {
     });
   }
 
-  // Load klausul map DULU (biar subtitle langsung muncul)
+  // Load klausul map DULU (untuk subtitle judul)
   await loadKlausulMap();
 
   // Load mini stats
   loadMiniStats();
 
-  // Load dokumen pertama kali
+  // Load dokumen
   await loadDocuments();
 
   // ===== Event listener filter =====
@@ -97,7 +96,7 @@ export async function initDocuments(user) {
 }
 
 // ============================================================
-// LOAD KLAUSUL MAP (untuk subtitle judul)
+// LOAD KLAUSUL MAP
 // ============================================================
 async function loadKlausulMap() {
   try {
@@ -219,15 +218,8 @@ async function loadDocuments() {
 }
 
 // ============================================================
-// PERMISSION HELPERS
+// PERMISSION
 // ============================================================
-
-/**
- * Cek apakah user boleh edit dokumen ini
- * - Admin: selalu bisa
- * - Editor: hanya Draft atau Review
- * - Lainnya: tidak bisa
- */
 function canEditDocument(doc) {
   var user = state.user;
   if (!user) return false;
@@ -241,9 +233,6 @@ function canEditDocument(doc) {
   return false;
 }
 
-/**
- * Render tombol edit atau tombol terkunci
- */
 function renderEditButton(d) {
   var allowed = canEditDocument(d);
 
@@ -259,7 +248,6 @@ function renderEditButton(d) {
          '</a>';
   }
 
-  // Tombol terkunci
   var tooltip = d.status === 'Approved'
     ? 'Dokumen sudah disetujui (read-only). Hanya Admin yang dapat mengubah.'
     : 'Anda tidak punya akses untuk edit dokumen ini.';
@@ -274,10 +262,9 @@ function renderEditButton(d) {
          '</span>';
 }
 
-/**
- * Render info klausul di bawah judul
- * Output: "4.5.1 · Penilaian Risiko"
- */
+// ============================================================
+// RENDER SUBTITLE KLAUSUL (di bawah Judul)
+// ============================================================
 function renderKlausulInfo(d) {
   var kode = String(d.sub_klausul || d.klausul_utama || '').trim();
   if (!kode) {
@@ -297,7 +284,7 @@ function renderKlausulInfo(d) {
   // Kode klausul (bold biru)
   html += '<span class="font-mono font-bold text-blue-600">' + escapeHtml(kode) + '</span>';
 
-  // Judul klausul (kalau ada di master)
+  // Judul klausul dari Master_Klausul
   if (judulKlausul) {
     html += '<span class="text-slate-300">&middot;</span>';
     html += '<span class="truncate">' + escapeHtml(judulKlausul) + '</span>';
@@ -339,8 +326,8 @@ function renderTable(docs) {
 
   tbody.innerHTML = docs.map(function(d) {
     const statusCls = STATUS_BADGE[d.status] || 'bg-slate-100 text-slate-700';
+    const jenisCls = JENIS_BADGE[d.jenis] || 'bg-slate-100 text-slate-700';
     const isLate = d.tgl_review_berikutnya && new Date(d.tgl_review_berikutnya) < new Date();
-    const klausulKode = d.sub_klausul || d.klausul_utama || '-';
 
     return '<tr>' +
 
@@ -351,7 +338,7 @@ function renderTable(docs) {
         '</span>' +
       '</td>' +
 
-      // ===== JUDUL + INFO KLAUSUL =====
+      // ===== JUDUL + SUBTITLE KLAUSUL =====
       '<td class="min-w-[240px]">' +
         '<a href="document-detail.html?id=' + d.doc_id + '" ' +
            'class="font-semibold text-slate-800 hover:text-blue-600 transition">' +
@@ -360,21 +347,17 @@ function renderTable(docs) {
         renderKlausulInfo(d) +
       '</td>' +
 
-      // ===== KLAUSUL ISO =====
+      // ===== JENIS DOKUMEN =====
       '<td>' +
-        '<div class="flex flex-col gap-1">' +
-          '<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ' +
-                'bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 border border-blue-100 w-fit">' +
-            '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">' +
-              '<path stroke-linecap="round" stroke-linejoin="round" ' +
-                    'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
-            '</svg>' +
-            escapeHtml(klausulKode) +
-          '</span>' +
-          (d.jenis
-            ? '<span class="text-[10px] text-slate-400 font-medium">' + escapeHtml(d.jenis) + '</span>'
-            : '') +
-        '</div>' +
+        '<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ' +
+              jenisCls + ' border">' +
+          escapeHtml(d.jenis || '-') +
+        '</span>' +
+        (d.sub_jenis
+          ? '<div class="text-[10px] text-slate-400 font-medium mt-0.5 pl-1">' +
+              escapeHtml(d.sub_jenis) +
+            '</div>'
+          : '') +
       '</td>' +
 
       // ===== VERSI =====
