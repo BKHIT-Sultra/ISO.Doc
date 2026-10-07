@@ -82,34 +82,33 @@
       </div>
 
       <!-- Form -->
-      <form id="uploadForm" class="space-y-6">
+      <form id="uploadForm" class="space-y-4">
 
         <!-- ============================================ -->
         <!-- SECTION 1: INFO DOKUMEN                      -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-1" id="section1">
-          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+        <div class="card-premium !p-5 fade-in-up fade-in-up-1" id="section1">
+          
+          <!-- Section Header (compact) -->
+          <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                  style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            <div>
-              <h2 class="font-bold text-slate-800">Informasi Dokumen</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Identitas utama dokumen</p>
-            </div>
+            <h2 class="font-bold text-slate-800 text-sm">Informasi Dokumen</h2>
+            <span class="text-xs text-slate-400">- Identitas utama</span>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Grid 12 kolom dengan gap kecil -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
             
-            <!-- Jenis Dokumen -->
-            <div>
-              <label class="form-label">
-                Jenis Dokumen <span class="text-red-500">*</span>
-              </label>
+            <!-- Jenis: 4 kolom -->
+            <div class="md:col-span-4">
+              <label class="form-label">Jenis <span class="text-red-500">*</span></label>
               <select id="jenis" required class="form-select">
-                <option value="">-- Pilih Jenis --</option>
+                <option value="">-- Pilih --</option>
                 <option value="Pedoman">Pedoman Manajemen Integrasi</option>
                 <option value="Prosedur">Prosedur Kerja</option>
                 <option value="IKK">IKK (Instruksi Kerja)</option>
@@ -119,152 +118,146 @@
               </select>
             </div>
 
-            <!-- Sub Jenis (conditional) -->
-            <div id="subJenisWrapper" class="hidden">
-              <label class="form-label">
-                Sub Jenis <span class="text-red-500">*</span>
-              </label>
+            <!-- Sub Jenis: 4 kolom (conditional) -->
+            <div id="subJenisWrapper" class="md:col-span-4 hidden">
+              <label class="form-label">Sub Jenis <span class="text-red-500">*</span></label>
               <select id="sub_jenis" class="form-select">
-                <option value="">-- Pilih Sub Jenis --</option>
+                <option value="">-- Pilih --</option>
               </select>
-              <div class="form-hint" id="subJenisHint"></div>
             </div>
 
-            <!-- Kode Dokumen -->
-            <div class="md:col-span-2">
-              <label class="form-label">
-                Kode Dokumen <span class="text-red-500">*</span>
-              </label>
+            <!-- Kode Dokumen: 8 kolom kalau sub jenis hidden, 4 kalau muncul -->
+            <div id="kodeWrapper" class="md:col-span-8">
+              <label class="form-label">Kode Dokumen <span class="text-red-500">*</span></label>
               <input id="kode_dokumen" type="text" required
                      placeholder="Contoh: FMM-4.5.1-01"
                      class="form-input font-mono">
-              <div class="form-hint">
-                <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span id="kodeHint">Format: PREFIX-KLAUSUL-NOMOR</span>
-              </div>
             </div>
 
-            <!-- Judul -->
-            <div class="md:col-span-2">
-              <label class="form-label">
-                Judul Dokumen <span class="text-red-500">*</span>
-              </label>
+            <!-- Klausul: 3 kolom -->
+            <div class="md:col-span-3">
+              <label class="form-label">Klausul ISO <span class="text-red-500">*</span></label>
+              <input id="sub_klausul" type="text" required
+                     placeholder="4.5.1"
+                     class="form-input font-mono">
+            </div>
+
+            <!-- Judul: 9 kolom -->
+            <div class="md:col-span-9">
+              <label class="form-label">Judul Dokumen <span class="text-red-500">*</span></label>
               <input id="judul" type="text" required
                      placeholder="Contoh: Penilaian Risiko"
                      class="form-input">
             </div>
 
-            <!-- Klausul ISO -->
-            <div class="md:col-span-2">
-              <label class="form-label">
-                Klausul ISO <span class="text-red-500">*</span>
-              </label>
-              <input id="sub_klausul" type="text" required
-                     placeholder="Contoh: 4.5.1"
-                     class="form-input font-mono">
-              <div class="form-hint">
-                Format: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">X.Y.Z</code> 
-                (contoh: 4.5.1, 9.2)
-              </div>
-            </div>
+          </div>
 
+          <!-- Hint di bawah grid -->
+          <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Kode: <code class="bg-slate-100 px-1.5 py-0.5 rounded" id="kodeHint">PREFIX-KLAUSUL-NOMOR</code></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Klausul: <code class="bg-slate-100 px-1.5 py-0.5 rounded">X.Y.Z</code> (contoh: 4.5.1)</span>
+            </div>
           </div>
         </div>
 
         <!-- ============================================ -->
         <!-- SECTION 2: JADWAL & REVIEW                   -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-2" id="section2">
-          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+        <div class="card-premium !p-5 fade-in-up fade-in-up-2" id="section2">
+          
+          <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                  style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
-              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
             </div>
-            <div>
-              <h2 class="font-bold text-slate-800">Jadwal & Review</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Tanggal terbit & catatan tambahan</p>
-            </div>
+            <h2 class="font-bold text-slate-800 text-sm">Jadwal & Review</h2>
+            <span class="text-xs text-slate-400">- Tanggal & catatan</span>
           </div>
 
-          <div class="grid grid-cols-1 gap-5">
-
-            <!-- Tanggal Terbit -->
-            <div>
-              <label class="form-label">
-                Tanggal Terbit <span class="text-red-500">*</span>
-              </label>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            
+            <!-- Tanggal Terbit: 4 kolom -->
+            <div class="md:col-span-4">
+              <label class="form-label">Tanggal Terbit <span class="text-red-500">*</span></label>
               <input id="tgl_terbit" type="date" required class="form-input">
-              <div class="form-hint">
-                Tanggal dokumen mulai berlaku. Review berikutnya dijadwalkan otomatis
-                <b class="text-slate-700">12 bulan</b> setelah tanggal ini.
-              </div>
             </div>
 
-            <!-- Kata Kunci -->
-            <div>
+            <!-- Kata Kunci: 8 kolom -->
+            <div class="md:col-span-8">
               <label class="form-label">Kata Kunci</label>
               <input id="kata_kunci" type="text"
-                     placeholder="risiko, penilaian, kriteria (pisahkan dengan koma)"
+                     placeholder="risiko, penilaian, kriteria (pisah koma)"
                      class="form-input">
-              <div class="form-hint">
-                Kata kunci memudahkan pencarian dokumen di kemudian hari
-              </div>
             </div>
 
-            <!-- Keterangan -->
-            <div>
+            <!-- Keterangan: full width -->
+            <div class="md:col-span-12">
               <label class="form-label">Keterangan</label>
-              <textarea id="keterangan" rows="3"
+              <textarea id="keterangan" rows="2"
                         placeholder="Catatan tambahan (opsional)..."
                         class="form-input resize-none"></textarea>
             </div>
 
+          </div>
+
+          <!-- Info review otomatis -->
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
+            <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Review berikutnya otomatis dijadwalkan <b class="text-slate-700">12 bulan</b> setelah tanggal terbit</span>
           </div>
         </div>
 
         <!-- ============================================ -->
         <!-- SECTION 3: FILE UPLOAD                       -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-3" id="section3">
-          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+        <div class="card-premium !p-5 fade-in-up fade-in-up-3" id="section3">
+          
+          <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                  style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
               </svg>
             </div>
-            <div>
-              <h2 class="font-bold text-slate-800">File Dokumen</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Upload file utama dokumen</p>
-            </div>
+            <h2 class="font-bold text-slate-800 text-sm">File Dokumen</h2>
+            <span class="text-xs text-slate-400">- Upload file utama</span>
           </div>
 
-          <!-- Drop Zone -->
-          <div id="dropZone" class="drop-zone">
-            <div class="drop-zone-inner">
-              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+          <!-- Drop Zone Compact -->
+          <div id="dropZone" class="drop-zone !p-6">
+            <div class="drop-zone-inner flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                    style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
               </div>
-              <div class="text-base font-semibold text-slate-700 mb-1">
-                Drag & drop file di sini
-              </div>
-              <div class="text-sm text-slate-500 mb-3">
-                atau <span class="text-blue-600 font-semibold underline">klik untuk pilih file</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
-                <span class="badge-file">PDF</span>
-                <span class="badge-file">DOCX</span>
-                <span class="badge-file">XLSX</span>
-                <span class="badge-file">PNG</span>
-                <span class="badge-file">JPG</span>
-                <span class="text-slate-400 ml-1">Maks 10 MB</span>
+              <div class="text-center sm:text-left">
+                <div class="text-sm font-semibold text-slate-700">
+                  Drag & drop file di sini, atau 
+                  <span class="text-blue-600 font-semibold underline">klik untuk pilih</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 mt-1.5 justify-center sm:justify-start">
+                  <span class="badge-file">PDF</span>
+                  <span class="badge-file">DOCX</span>
+                  <span class="badge-file">XLSX</span>
+                  <span class="badge-file">PNG</span>
+                  <span class="badge-file">JPG</span>
+                  <span class="text-slate-400 text-xs">Maks 10 MB</span>
+                </div>
               </div>
             </div>
             <input type="file" id="fileInput" class="hidden"
@@ -272,7 +265,7 @@
           </div>
 
           <!-- File Preview -->
-          <div id="filePreview" class="file-preview hidden">
+          <div id="filePreview" class="file-preview hidden !mt-3">
             <div class="file-preview-icon">
               <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -295,23 +288,24 @@
         <!-- ============================================ -->
         <!-- ACTION BUTTONS                               -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-3">
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="card-premium !p-4 fade-in-up fade-in-up-3">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-xs text-slate-500 flex items-center gap-2">
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              Dokumen akan disimpan sebagai <b class="text-slate-700">Draft</b>
+              Disimpan sebagai <b class="text-slate-700">Draft</b>
             </div>
-            <div class="flex gap-3 w-full sm:w-auto">
-              <a href="documents.html" class="btn-secondary flex-1 sm:flex-initial">
+            <div class="flex gap-2 w-full sm:w-auto">
+              <a href="documents.html" class="btn-secondary flex-1 sm:flex-initial !py-2.5 !px-4">
                 Batal
               </a>
-              <button type="submit" id="btnSubmit" class="btn-gradient flex-1 sm:flex-initial justify-center">
+              <button type="submit" id="btnSubmit" 
+                      class="btn-gradient flex-1 sm:flex-initial justify-center !py-2.5 !px-5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
-                <span>Simpan Dokumen</span>
+                <span>Simpan</span>
               </button>
             </div>
           </div>
