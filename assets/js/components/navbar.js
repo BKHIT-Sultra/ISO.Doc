@@ -7,9 +7,9 @@ import { apiGet } from '../api.js';
 
 export function renderNavbar(user) {
   return `
-    <header class="sticky top-0 z-30 border-b border-slate-200/60" 
+    <header class="sticky top-0 z-40 h-16 border-b border-slate-200/60" 
             style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);">
-      <div class="flex items-center justify-between px-4 lg:px-6 py-3">
+      <div class="flex items-center justify-between px-4 lg:px-6 h-full">
         
         <!-- KIRI: Hamburger + Search -->
         <div class="flex items-center gap-3 flex-1">
