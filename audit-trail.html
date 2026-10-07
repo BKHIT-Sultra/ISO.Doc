@@ -6,85 +6,143 @@
   <title>Audit Trail - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
-  <div id="navbar"></div>
+<body class="bg-slate-50 min-h-screen">
+  <div id="navbar" class="sticky top-0 z-40"></div>
 
   <div class="flex">
-    <div id="sidebar"></div>
+    <div id="sidebar" 
+         class="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto 
+                w-64 flex-shrink-0 hidden lg:block"></div>
 
-    <main class="flex-1 p-6">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-          <div>
-            <h1 class="text-2xl font-bold text-slate-800">📊 Audit Trail</h1>
-            <p class="text-sm text-slate-500 mt-1">Log semua aktivitas pengguna sistem</p>
+    <main class="flex-1 min-w-0 p-4 lg:p-8">
+
+      <!-- Page Header -->
+      <div class="mb-8 fade-in-up">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
+                 style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-800 leading-tight">
+                Audit Trail
+              </h1>
+              <p class="text-slate-500 text-sm mt-1">
+                Log semua aktivitas pengguna sistem
+              </p>
+            </div>
           </div>
-          <button id="btnExport" class="px-4 py-2 border border-slate-300 rounded-lg text-sm 
-                                       hover:bg-white flex items-center gap-2">
-            📥 Export CSV
+
+          <button id="btnExport" class="btn-gradient">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Export CSV</span>
           </button>
         </div>
+      </div>
 
-        <!-- Filter -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-slate-100">
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <input id="fEmail" type="text" placeholder="Email user..."
-                   class="px-3 py-2 border rounded-lg text-sm">
-            <select id="fAksi" class="px-3 py-2 border rounded-lg text-sm">
-              <option value="">Semua Aksi</option>
-              <option>LOGIN</option>
-              <option>LOGOUT</option>
-              <option>CREATE</option>
-              <option>UPDATE</option>
-              <option>DELETE</option>
-              <option>APPROVE</option>
-              <option>REJECT</option>
-              <option>SUBMIT</option>
-            </select>
-            <input id="fDari" type="date" class="px-3 py-2 border rounded-lg text-sm">
-            <input id="fSampai" type="date" class="px-3 py-2 border rounded-lg text-sm">
-            <button id="btnReset" class="px-3 py-2 border rounded-lg text-sm hover:bg-slate-50">
-              ↺ Reset
-            </button>
-          </div>
+      <!-- Mini Stats -->
+      <div id="auditStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 fade-in-up fade-in-up-1"></div>
+
+      <!-- Filter Card -->
+      <div class="card-premium mb-6 fade-in-up fade-in-up-2">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" 
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <h3 class="text-sm font-bold text-slate-700">Filter Log</h3>
         </div>
 
-        <!-- Tabel -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-slate-50 border-b border-slate-100">
-                <tr class="text-left text-xs font-semibold text-slate-600 uppercase">
-                  <th class="p-3">Waktu</th>
-                  <th class="p-3">User</th>
-                  <th class="p-3">Aksi</th>
-                  <th class="p-3">Dokumen</th>
-                  <th class="p-3">Detail</th>
-                </tr>
-              </thead>
-              <tbody id="auditBody"></tbody>
-            </table>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          
+          <!-- Email -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <input id="fEmail" type="text" placeholder="Cari email user..." 
+                   class="form-input pl-10">
           </div>
-          <div id="pagination" class="p-4 border-t border-slate-100 flex justify-center"></div>
+
+          <!-- Aksi -->
+          <div class="relative">
+            <select id="fAksi" class="form-select">
+              <option value="">Semua Aksi</option>
+              <option value="LOGIN">Login</option>
+              <option value="LOGOUT">Logout</option>
+              <option value="CREATE">Create</option>
+              <option value="UPDATE">Update</option>
+              <option value="DELETE">Delete</option>
+              <option value="APPROVE">Approve</option>
+              <option value="REJECT">Reject</option>
+              <option value="SUBMIT">Submit</option>
+              <option value="VIEW">View</option>
+              <option value="DOWNLOAD">Download</option>
+            </select>
+          </div>
+
+          <!-- Dari -->
+          <div>
+            <input id="fDari" type="date" class="form-input" title="Tanggal dari">
+          </div>
+
+          <!-- Sampai -->
+          <div>
+            <input id="fSampai" type="date" class="form-input" title="Tanggal sampai">
+          </div>
+
+          <!-- Reset -->
+          <button id="btnReset"
+                  class="px-4 py-2.5 text-sm font-semibold text-slate-600 
+                         bg-white border-2 border-slate-200 rounded-xl 
+                         hover:bg-slate-50 hover:border-slate-300 
+                         transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Reset
+          </button>
         </div>
       </div>
+
+      <!-- Table Card -->
+      <div class="card-premium !p-0 overflow-hidden fade-in-up fade-in-up-3">
+        <div class="overflow-x-auto">
+          <table class="table-premium">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>User</th>
+                <th>Aksi</th>
+                <th>Dokumen</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+        <div id="pagination" 
+             class="px-6 py-4 border-t border-slate-100 flex justify-center flex-wrap gap-2"></div>
+      </div>
+
     </main>
   </div>
 
-  <script type="module">
-    import { requireAuth } from './assets/js/auth.js';
-    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
-    import { renderSidebar } from './assets/js/components/sidebar.js';
-    import { initAuditTrail } from './assets/js/pages/audit-trail.js';
-
-    const user = requireAuth();
-    if (user) {
-      document.getElementById('navbar').innerHTML = renderNavbar(user);
-      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'audit-trail');
-      attachNavbarEvents();
-      initAuditTrail(user);
-    }
-  </script>
+  <script src="assets/js/pages/audit-trail-page.js" type="module"></script>
 </body>
 </html>
