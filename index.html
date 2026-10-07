@@ -2,11 +2,26 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>✅ GitHub Pages Berfungsi!</h1>
-  <p>Repo: bkhit-sutra/ISO.Doc</p>
-  <p><a href="login.html">Ke Halaman Login</a></p>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+  <div class="text-center">
+    <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center 
+                text-white text-3xl font-bold mb-4 animate-pulse">ISO</div>
+    <h1 class="text-xl font-bold text-slate-800">Memuat...</h1>
+    <p class="text-sm text-slate-500 mt-1">Mengarahkan ke halaman yang sesuai</p>
+  </div>
+
+  <script type="module">
+    import { getSession } from './assets/js/auth.js';
+    
+    // Redirect: jika sudah login → dashboard, jika belum → login
+    const session = getSession();
+    setTimeout(() => {
+      location.href = session ? 'dashboard.html' : 'login.html';
+    }, 500);
+  </script>
 </body>
 </html>
