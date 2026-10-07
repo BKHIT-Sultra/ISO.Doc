@@ -49,29 +49,38 @@
   <script type="module">
     import { login, getSession } from './assets/js/auth.js';
     import { showToast } from './assets/js/components/toast.js';
-
-    // Jika sudah login, redirect ke dashboard
+    import { btnLoading, btnReset, showOverlay, hideOverlay } from './assets/js/components/loader.js';
+  
     if (getSession()) location.href = 'dashboard.html';
-
+  
     const form = document.getElementById('loginForm');
     const btn = document.getElementById('btnLogin');
-
+  
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      btn.disabled = true;
-      btn.textContent = 'Memproses...';
-
+  
+      // Tampilkan loading di tombol
+      btnLoading(btn, 'Memverifikasi...');
+      showOverlay('Memverifikasi akun', 'Mohon tunggu sebentar...');
+  
       try {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+  
         const user = await login(email, password);
-
-        showToast(`Selamat datang, ${user.nama}!`, 'success', 1500);
+  
+        hideOverlay();
+        showToast(`✅ Selamat datang, ${user.nama}!`, 'success', 1500);
         setTimeout(() => location.href = 'dashboard.html', 800);
+  
       } catch (err) {
+        hideOverlay();
+        btnReset(btn);
         showToast(err.message || 'Login gagal', 'error');
-        btn.disabled = false;
-        btn.textContent = 'Login';
+  
+        // Shake animation untuk feedback error
+        form.classList.add('animate-shake');
+        setTimeout(() => form.classList.remove('animate-shake'), 500);
       }
     });
   </script>
