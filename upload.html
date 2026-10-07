@@ -71,8 +71,8 @@
               <span>2</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-xs font-bold text-slate-700 uppercase tracking-wide">Klasifikasi</div>
-              <div class="text-xs text-slate-500 truncate">Klausul, standar</div>
+              <div class="text-xs font-bold text-slate-700 uppercase tracking-wide">Jadwal</div>
+              <div class="text-xs text-slate-500 truncate">Tanggal & review</div>
             </div>
           </div>
 
@@ -113,34 +113,34 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             
-            <!-- Jenis -->
+            <!-- Jenis Dokumen -->
             <div>
               <label class="form-label">
                 Jenis Dokumen <span class="text-red-500">*</span>
               </label>
               <select id="jenis" required class="form-select">
                 <option value="">-- Pilih Jenis --</option>
-                <option value="Pedoman">Pedoman</option>
-                <option value="Prosedur">Prosedur</option>
+                <option value="Pedoman">Pedoman Manajemen Integrasi</option>
+                <option value="Prosedur">Prosedur Kerja</option>
                 <option value="IKK">IKK (Instruksi Kerja)</option>
-                <option value="Formulir">Formulir</option>
                 <option value="Eviden">Eviden</option>
+                <option value="Formulir">Formulir</option>
                 <option value="Lampiran">Lampiran</option>
               </select>
             </div>
 
-            <!-- Sub Jenis -->
-            <div>
-              <label class="form-label">Sub Jenis</label>
+            <!-- Sub Jenis (conditional) -->
+            <div id="subJenisWrapper" class="hidden">
+              <label class="form-label">
+                Sub Jenis <span class="text-red-500">*</span>
+              </label>
               <select id="sub_jenis" class="form-select">
-                <option value="">-- Tidak Ada --</option>
-                <option value="FMM">FMM - Formulir Mutu</option>
-                <option value="FK3">FK3 - Formulir K3</option>
-                <option value="FAP">FAP - Formulir Anti Penyuapan</option>
+                <option value="">-- Pilih Sub Jenis --</option>
               </select>
+              <div class="form-hint" id="subJenisHint"></div>
             </div>
 
-            <!-- Kode -->
+            <!-- Kode Dokumen -->
             <div class="md:col-span-2">
               <label class="form-label">
                 Kode Dokumen <span class="text-red-500">*</span>
@@ -152,7 +152,7 @@
                 <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Format: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">PREFIX-KLAUSUL-NOMOR</code>
+                <span id="kodeHint">Format: PREFIX-KLAUSUL-NOMOR</span>
               </div>
             </div>
 
@@ -166,30 +166,8 @@
                      class="form-input">
             </div>
 
-          </div>
-        </div>
-
-        <!-- ============================================ -->
-        <!-- SECTION 2: KLASIFIKASI                       -->
-        <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-2" id="section2">
-          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                 style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
-              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-              </svg>
-            </div>
-            <div>
-              <h2 class="font-bold text-slate-800">Klasifikasi ISO</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Klausul & standar yang relevan</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            <!-- Klausul -->
-            <div>
+            <!-- Klausul ISO -->
+            <div class="md:col-span-2">
               <label class="form-label">
                 Klausul ISO <span class="text-red-500">*</span>
               </label>
@@ -202,68 +180,13 @@
               </div>
             </div>
 
-            <!-- Standar -->
-            <div>
-              <label class="form-label">
-                Standar Berlaku <span class="text-red-500">*</span>
-              </label>
-              <div class="grid grid-cols-2 gap-2 mt-2">
-                <label class="standar-item">
-                  <input type="checkbox" class="standar-cb" value="SMM">
-                  <div class="standar-content">
-                    <div class="standar-code">SMM</div>
-                    <div class="standar-name">Mutu</div>
-                  </div>
-                </label>
-                <label class="standar-item">
-                  <input type="checkbox" class="standar-cb" value="SMAP">
-                  <div class="standar-content">
-                    <div class="standar-code">SMAP</div>
-                    <div class="standar-name">Lingkungan</div>
-                  </div>
-                </label>
-                <label class="standar-item">
-                  <input type="checkbox" class="standar-cb" value="K3">
-                  <div class="standar-content">
-                    <div class="standar-code">K3</div>
-                    <div class="standar-name">Keselamatan</div>
-                  </div>
-                </label>
-                <label class="standar-item">
-                  <input type="checkbox" class="standar-cb" value="SMAP-AP">
-                  <div class="standar-content">
-                    <div class="standar-code">SMAP-AP</div>
-                    <div class="standar-name">Anti Suap</div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Departemen -->
-            <div>
-              <label class="form-label">
-                Departemen Pemilik <span class="text-red-500">*</span>
-              </label>
-              <input id="pemilik_departemen" type="text" required
-                     placeholder="Contoh: Quality Control"
-                     class="form-input">
-            </div>
-
-            <!-- Email Pemilik -->
-            <div>
-              <label class="form-label">Email Pemilik</label>
-              <input id="pemilik_email" type="email"
-                     placeholder="qc@company.com"
-                     class="form-input">
-            </div>
-
           </div>
         </div>
 
         <!-- ============================================ -->
-        <!-- SECTION 3: JADWAL REVIEW                     -->
+        <!-- SECTION 2: JADWAL & REVIEW                   -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-3" id="section3">
+        <div class="card-premium fade-in-up fade-in-up-2" id="section2">
           <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center"
                  style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
@@ -326,9 +249,9 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- SECTION 4: FILE UPLOAD                       -->
+        <!-- SECTION 3: FILE UPLOAD                       -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-4" id="section4">
+        <div class="card-premium fade-in-up fade-in-up-3" id="section3">
           <div class="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center"
                  style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
@@ -394,7 +317,7 @@
         <!-- ============================================ -->
         <!-- ACTION BUTTONS                               -->
         <!-- ============================================ -->
-        <div class="card-premium fade-in-up fade-in-up-4">
+        <div class="card-premium fade-in-up fade-in-up-3">
           <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="text-xs text-slate-500 flex items-center gap-2">
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
