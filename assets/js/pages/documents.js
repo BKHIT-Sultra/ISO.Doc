@@ -20,7 +20,7 @@ let state = {
     klausul: '',
     q: ''
   },
-  allStats: null
+  klausulMap: {}   // ← Map: klausul_id → judul_klausul
 };
 
 // ============================================================
