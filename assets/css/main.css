@@ -573,3 +573,29 @@ html { scroll-behavior: smooth; }
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
 }
+
+/* ============================================================
+   SIDEBAR SCROLLBAR (halus)
+   ============================================================ */
+#sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 3px;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* Firefox */
+#sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
