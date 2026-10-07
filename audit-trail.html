@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Trail - ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="bg-slate-50">
+  <div id="navbar"></div>
+
+  <div class="flex">
+    <div id="sidebar"></div>
+
+    <main class="flex-1 p-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+          <div>
+            <h1 class="text-2xl font-bold text-slate-800">📊 Audit Trail</h1>
+            <p class="text-sm text-slate-500 mt-1">Log semua aktivitas pengguna sistem</p>
+          </div>
+          <button id="btnExport" class="px-4 py-2 border border-slate-300 rounded-lg text-sm 
+                                       hover:bg-white flex items-center gap-2">
+            📥 Export CSV
+          </button>
+        </div>
+
+        <!-- Filter -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-slate-100">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <input id="fEmail" type="text" placeholder="Email user..."
+                   class="px-3 py-2 border rounded-lg text-sm">
+            <select id="fAksi" class="px-3 py-2 border rounded-lg text-sm">
+              <option value="">Semua Aksi</option>
+              <option>LOGIN</option>
+              <option>LOGOUT</option>
+              <option>CREATE</option>
+              <option>UPDATE</option>
+              <option>DELETE</option>
+              <option>APPROVE</option>
+              <option>REJECT</option>
+              <option>SUBMIT</option>
+            </select>
+            <input id="fDari" type="date" class="px-3 py-2 border rounded-lg text-sm">
+            <input id="fSampai" type="date" class="px-3 py-2 border rounded-lg text-sm">
+            <button id="btnReset" class="px-3 py-2 border rounded-lg text-sm hover:bg-slate-50">
+              ↺ Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabel -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 border-b border-slate-100">
+                <tr class="text-left text-xs font-semibold text-slate-600 uppercase">
+                  <th class="p-3">Waktu</th>
+                  <th class="p-3">User</th>
+                  <th class="p-3">Aksi</th>
+                  <th class="p-3">Dokumen</th>
+                  <th class="p-3">Detail</th>
+                </tr>
+              </thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+          <div id="pagination" class="p-4 border-t border-slate-100 flex justify-center"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './assets/js/auth.js';
+    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
+    import { renderSidebar } from './assets/js/components/sidebar.js';
+    import { initAuditTrail } from './assets/js/pages/audit-trail.js';
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('navbar').innerHTML = renderNavbar(user);
+      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'audit-trail');
+      attachNavbarEvents();
+      initAuditTrail(user);
+    }
+  </script>
+</body>
+</html>
