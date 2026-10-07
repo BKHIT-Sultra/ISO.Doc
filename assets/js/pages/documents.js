@@ -5,13 +5,14 @@
  */
 import { apiGet } from '../api.js';
 import { formatDate, escapeHtml, debounce } from '../utils.js';
-import { STATUS_BADGE, CONFIG, JENIS, JENIS_BADGE, JENIS_ICON } from '../config.js';
+import { STATUS_BADGE, CONFIG, JENIS } from '../config.js';
 import { skeletonTable } from '../components/loader.js';
 
 // ============================================================
 // STATE
 // ============================================================
 let state = {
+  user: null,                     // ← User yang login
   page: 1,
   limit: CONFIG.ITEMS_PER_PAGE,
   filters: {
@@ -20,13 +21,16 @@ let state = {
     klausul: '',
     q: ''
   },
-  klausulMap: {}   // ← Map: klausul_id → judul_klausul
+  klausulMap: {}                  // ← Map: klausul_id → judul_klausul
 };
 
 // ============================================================
 // INIT
 // ============================================================
 export async function initDocuments(user) {
+  // Simpan user ke state (untuk tombol edit conditional)
+  state.user = user;
+
   // Populate dropdown jenis
   const selJenis = document.getElementById('filterJenis');
   if (selJenis) {
@@ -38,7 +42,10 @@ export async function initDocuments(user) {
     });
   }
 
-  // Load mini stats (sekali saja)
+  // Load klausul map DULU (biar subtitle langsung muncul)
+  await loadKlausulMap();
+
+  // Load mini stats
   loadMiniStats();
 
   // Load dokumen pertama kali
@@ -90,12 +97,30 @@ export async function initDocuments(user) {
 }
 
 // ============================================================
+// LOAD KLAUSUL MAP (untuk subtitle judul)
+// ============================================================
+async function loadKlausulMap() {
+  try {
+    const data = await apiGet('getKlausul');
+    state.klausulMap = {};
+    (data || []).forEach(function(k) {
+      if (k.klausul_id) {
+        state.klausulMap[String(k.klausul_id).trim()] = k.judul_klausul || '';
+      }
+    });
+    console.log('[documents] Klausul map loaded:', Object.keys(state.klausulMap).length, 'items');
+  } catch (e) {
+    console.warn('[documents] Gagal load klausul:', e);
+    state.klausulMap = {};
+  }
+}
+
+// ============================================================
 // MINI STATS
 // ============================================================
 async function loadMiniStats() {
   try {
     const stats = await apiGet('getDocumentStats');
-    state.allStats = stats;
     renderMiniStats(stats);
   } catch (e) {
     console.warn('[MiniStats]', e);
@@ -107,27 +132,27 @@ function renderMiniStats(stats) {
   if (!container) return;
 
   const items = [
-    { 
-      label: 'Total', 
-      value: stats.total || 0, 
+    {
+      label: 'Total',
+      value: stats.total || 0,
       color: 'blue',
       icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
     },
-    { 
-      label: 'Approved', 
-      value: (stats.by_status && stats.by_status.Approved) || 0, 
+    {
+      label: 'Approved',
+      value: (stats.by_status && stats.by_status.Approved) || 0,
       color: 'green',
       icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
     },
-    { 
-      label: 'Review', 
-      value: (stats.by_status && stats.by_status.Review) || 0, 
+    {
+      label: 'Review',
+      value: (stats.by_status && stats.by_status.Review) || 0,
       color: 'yellow',
       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
     },
-    { 
-      label: 'Draft', 
-      value: (stats.by_status && stats.by_status.Draft) || 0, 
+    {
+      label: 'Draft',
+      value: (stats.by_status && stats.by_status.Draft) || 0,
       color: 'purple',
       icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z'
     }
@@ -142,11 +167,11 @@ function renderMiniStats(stats) {
           '</svg>' +
         '</div>' +
         '<div class="min-w-0">' +
-          '<div class="text-xs text-slate-500 font-semibold uppercase tracking-wide">' + 
-            c.label + 
+          '<div class="text-xs text-slate-500 font-semibold uppercase tracking-wide">' +
+            c.label +
           '</div>' +
-          '<div class="text-2xl font-extrabold text-slate-800 leading-tight">' + 
-            c.value + 
+          '<div class="text-2xl font-extrabold text-slate-800 leading-tight">' +
+            c.value +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -161,15 +186,13 @@ async function loadDocuments() {
   const tbody = document.getElementById('docTableBody');
   if (!tbody) return;
 
-  // Skeleton
   tbody.innerHTML = skeletonTable(7, 5);
 
   try {
-    const result = await apiGet('getDocuments', {
-      ...state.filters,
+    const result = await apiGet('getDocuments', Object.assign({}, state.filters, {
       page: state.page,
       limit: state.limit
-    });
+    }));
 
     renderTable(result.data);
     renderPagination(result.pagination);
@@ -195,25 +218,26 @@ async function loadDocuments() {
   }
 }
 
+// ============================================================
+// PERMISSION HELPERS
+// ============================================================
+
 /**
- * Tentukan apakah user boleh edit dokumen ini
- * Rule:
- *  - Admin: selalu bisa
- *  - Editor: hanya bisa saat status Draft atau Review
- *  - Role lain: tidak bisa
+ * Cek apakah user boleh edit dokumen ini
+ * - Admin: selalu bisa
+ * - Editor: hanya Draft atau Review
+ * - Lainnya: tidak bisa
  */
 function canEditDocument(doc) {
-  var user = state.user; // pastikan state.user tersedia
+  var user = state.user;
   if (!user) return false;
-  
-  // Admin selalu bisa
+
   if (user.role === 'Admin') return true;
-  
-  // Editor: Draft atau Review saja
+
   if (user.role === 'Editor') {
     return doc.status === 'Draft' || doc.status === 'Review';
   }
-  
+
   return false;
 }
 
@@ -222,7 +246,7 @@ function canEditDocument(doc) {
  */
 function renderEditButton(d) {
   var allowed = canEditDocument(d);
-  
+
   if (allowed) {
     return '<a href="upload.html?id=' + d.doc_id + '" ' +
              'class="w-8 h-8 rounded-lg flex items-center justify-center ' +
@@ -234,12 +258,12 @@ function renderEditButton(d) {
            '</svg>' +
          '</a>';
   }
-  
-  // Tombol terkunci - disabled + tooltip
+
+  // Tombol terkunci
   var tooltip = d.status === 'Approved'
     ? 'Dokumen sudah disetujui (read-only). Hanya Admin yang dapat mengubah.'
     : 'Anda tidak punya akses untuk edit dokumen ini.';
-  
+
   return '<span class="w-8 h-8 rounded-lg flex items-center justify-center ' +
                'text-slate-300 cursor-not-allowed" ' +
                'title="' + tooltip + '">' +
@@ -248,6 +272,39 @@ function renderEditButton(d) {
                    'd="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>' +
            '</svg>' +
          '</span>';
+}
+
+/**
+ * Render info klausul di bawah judul
+ * Output: "4.5.1 · Penilaian Risiko"
+ */
+function renderKlausulInfo(d) {
+  var kode = String(d.sub_klausul || d.klausul_utama || '').trim();
+  if (!kode) {
+    return '<div class="text-xs text-slate-400 mt-1">-</div>';
+  }
+
+  var judulKlausul = state.klausulMap[kode] || '';
+
+  var html = '<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">';
+
+  // Ikon tag
+  html += '<svg class="w-3 h-3 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">';
+  html += '  <path stroke-linecap="round" stroke-linejoin="round" ' +
+                'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>';
+  html += '</svg>';
+
+  // Kode klausul (bold biru)
+  html += '<span class="font-mono font-bold text-blue-600">' + escapeHtml(kode) + '</span>';
+
+  // Judul klausul (kalau ada di master)
+  if (judulKlausul) {
+    html += '<span class="text-slate-300">&middot;</span>';
+    html += '<span class="truncate">' + escapeHtml(judulKlausul) + '</span>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 // ============================================================
@@ -282,51 +339,45 @@ function renderTable(docs) {
 
   tbody.innerHTML = docs.map(function(d) {
     const statusCls = STATUS_BADGE[d.status] || 'bg-slate-100 text-slate-700';
-    const jenisCls = JENIS_BADGE[d.jenis] || 'bg-slate-100 text-slate-700';
-    const jenisIcon = JENIS_ICON[d.jenis] || 'M9 12h6m-6 4h6';
     const isLate = d.tgl_review_berikutnya && new Date(d.tgl_review_berikutnya) < new Date();
+    const klausulKode = d.sub_klausul || d.klausul_utama || '-';
 
     return '<tr>' +
-      // Kode
+
+      // ===== KODE =====
       '<td>' +
         '<span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded-md">' +
           escapeHtml(d.kode_dokumen || '-') +
         '</span>' +
       '</td>' +
 
-      // Judul
+      // ===== JUDUL + INFO KLAUSUL =====
       '<td class="min-w-[240px]">' +
         '<a href="document-detail.html?id=' + d.doc_id + '" ' +
            'class="font-semibold text-slate-800 hover:text-blue-600 transition">' +
           escapeHtml(d.judul || '-') +
         '</a>' +
-        '<div class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">' +
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" ' +
-                  'd="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>' +
-          '</svg>' +
-          escapeHtml(d.pemilik_departemen || '-') +
-        '</div>' +
+        renderKlausulInfo(d) +
       '</td>' +
 
-      // Klausul ISO
+      // ===== KLAUSUL ISO =====
       '<td>' +
         '<div class="flex flex-col gap-1">' +
           '<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ' +
                 'bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 border border-blue-100 w-fit">' +
             '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">' +
-              '<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
             '</svg>' +
-            escapeHtml(d.sub_klausul || d.klausul_utama || '-') +
+            escapeHtml(klausulKode) +
           '</span>' +
-          (d.jenis 
+          (d.jenis
             ? '<span class="text-[10px] text-slate-400 font-medium">' + escapeHtml(d.jenis) + '</span>'
             : '') +
         '</div>' +
       '</td>' +
 
-      // Versi
+      // ===== VERSI =====
       '<td class="text-center">' +
         '<span class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 ' +
                      'bg-gradient-to-br from-blue-50 to-indigo-50 ' +
@@ -335,7 +386,7 @@ function renderTable(docs) {
         '</span>' +
       '</td>' +
 
-      // Status
+      // ===== STATUS =====
       '<td>' +
         '<span class="badge ' + statusCls + '">' +
           '<span class="w-1.5 h-1.5 rounded-full bg-current"></span>' +
@@ -343,33 +394,35 @@ function renderTable(docs) {
         '</span>' +
       '</td>' +
 
-      // Terbit
+      // ===== TERBIT =====
       '<td class="whitespace-nowrap">' +
         '<div class="text-xs text-slate-600 font-medium">' + formatDate(d.tgl_terbit) + '</div>' +
-        (d.tgl_review_berikutnya ?
-          '<div class="text-xs mt-0.5 ' + (isLate ? 'text-red-500' : 'text-slate-400') + '">' +
-            'Review: ' + formatDate(d.tgl_review_berikutnya) +
-          '</div>' : '') +
+        (d.tgl_review_berikutnya
+          ? '<div class="text-xs mt-0.5 ' + (isLate ? 'text-red-500' : 'text-slate-400') + '">' +
+              'Review: ' + formatDate(d.tgl_review_berikutnya) +
+            '</div>'
+          : '') +
       '</td>' +
 
-      // Aksi
+      // ===== AKSI =====
       '<td class="text-right whitespace-nowrap">' +
         '<div class="inline-flex items-center gap-1">' +
-          
-          // Tombol Lihat (selalu ada)
+
+          // Tombol Lihat
           '<a href="document-detail.html?id=' + d.doc_id + '" ' +
              'class="w-8 h-8 rounded-lg flex items-center justify-center ' +
                     'text-blue-600 hover:bg-blue-50 transition" ' +
              'title="Lihat detail">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
               '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
-              '<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
             '</svg>' +
           '</a>' +
-          
-          // Tombol Edit - HANYA jika BOLEH
+
+          // Tombol Edit (conditional)
           renderEditButton(d) +
-          
+
         '</div>' +
       '</td>' +
     '</tr>';
@@ -397,23 +450,19 @@ function renderPagination(p) {
 
   let html = '';
 
-  // Prev
   html += navBtn(page - 1, page <= 1, 'prev');
 
-  // Halaman 1 + ellipsis
   if (page > 3) {
     html += numBtn(1, page === 1);
     if (page > 4) html += '<span class="px-1.5 text-slate-400">...</span>';
   }
 
-  // Range sekitar current
   const start = Math.max(1, page - 2);
   const end = Math.min(totalPages, page + 2);
   for (let i = start; i <= end; i++) {
     html += numBtn(i, i === page);
   }
 
-  // Ellipsis + terakhir
   if (page < totalPages - 2) {
     if (page < totalPages - 3) {
       html += '<span class="px-1.5 text-slate-400">...</span>';
@@ -421,17 +470,14 @@ function renderPagination(p) {
     html += numBtn(totalPages, page === totalPages);
   }
 
-  // Next
   html += navBtn(page + 1, page >= totalPages, 'next');
 
-  // Ringkasan
   html += '<span class="ml-3 text-xs text-slate-500 self-center">' +
-            total + ' dokumen · Hal ' + page + '/' + totalPages +
+            total + ' dokumen &middot; Hal ' + page + '/' + totalPages +
           '</span>';
 
   el.innerHTML = html;
 
-  // Attach events
   el.querySelectorAll('[data-page]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const p = Number(btn.dataset.page);
