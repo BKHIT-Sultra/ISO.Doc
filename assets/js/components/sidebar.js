@@ -75,7 +75,7 @@ export function renderSidebar(user, currentPage) {
             <span class="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot"></span>
             Sistem Aktif
           </div>
-          <div class="text-xs text-slate-500">Kendari, Sulawesi Tenggara</div>
+          <div class="text-xs text-slate-500">BKHIT Sulawesi Tenggara</div>
         </div>
       </div>
     </aside>
