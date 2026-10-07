@@ -6,48 +6,63 @@
   <title>Reminder Review - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
-  <div id="navbar"></div>
+<body class="bg-slate-50 min-h-screen">
+  <div id="navbar" class="sticky top-0 z-40"></div>
 
   <div class="flex">
-    <div id="sidebar"></div>
+    <div id="sidebar" 
+         class="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto 
+                w-64 flex-shrink-0 hidden lg:block"></div>
 
-    <main class="flex-1 p-6">
-      <div class="max-w-5xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h1 class="text-2xl font-bold text-slate-800">🔔 Reminder Review</h1>
-            <p class="text-sm text-slate-500 mt-1">Dokumen yang perlu ditinjau ulang</p>
+    <main class="flex-1 min-w-0 p-4 lg:p-8">
+
+      <!-- Page Header -->
+      <div class="mb-8 fade-in-up">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
+                 style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-800 leading-tight">
+                Reminder Review
+              </h1>
+              <p class="text-slate-500 text-sm mt-1">
+                Dokumen yang perlu ditinjau ulang
+              </p>
+            </div>
           </div>
-          <div class="flex gap-2">
-            <select id="fHari" class="px-3 py-2 border rounded-lg text-sm">
-              <option value="7">7 hari</option>
-              <option value="30" selected>30 hari</option>
-              <option value="60">60 hari</option>
-              <option value="90">90 hari</option>
-            </select>
+
+          <!-- Filter Periode -->
+          <div class="flex items-center gap-2 bg-white border-2 border-slate-200 
+                      rounded-xl p-1 shadow-sm">
+            <button data-hari="7" class="periode-btn">7 Hari</button>
+            <button data-hari="30" class="periode-btn active">30 Hari</button>
+            <button data-hari="60" class="periode-btn">60 Hari</button>
+            <button data-hari="90" class="periode-btn">90 Hari</button>
           </div>
         </div>
-
-        <div id="reminderContent"></div>
       </div>
+
+      <!-- Mini Stats -->
+      <div id="reminderStats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 fade-in-up fade-in-up-1"></div>
+
+      <!-- Content -->
+      <div id="reminderContent">
+        <!-- Skeleton akan di-inject -->
+      </div>
+
     </main>
   </div>
 
-  <script type="module">
-    import { requireAuth } from './assets/js/auth.js';
-    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
-    import { renderSidebar } from './assets/js/components/sidebar.js';
-    import { initReviewReminder } from './assets/js/pages/review-reminder.js';
-
-    const user = requireAuth();
-    if (user) {
-      document.getElementById('navbar').innerHTML = renderNavbar(user);
-      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'review-reminder');
-      attachNavbarEvents();
-      initReviewReminder(user);
-    }
-  </script>
+  <script src="assets/js/pages/review-reminder.js" type="module"></script>
 </body>
 </html>
