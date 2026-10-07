@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="bg-slate-50">
+  <div id="navbar"></div>
+
+  <div class="flex">
+    <div id="sidebar"></div>
+
+    <main class="flex-1 p-6" id="dashboardContent">
+      <h1 class="text-2xl font-bold text-slate-800 mb-6">📊 Dashboard</h1>
+
+      <!-- Summary Cards -->
+      <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"></div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+          <h2 class="font-semibold text-slate-800 mb-4">📚 Distribusi per Jenis</h2>
+          <div id="chartJenis"></div>
+        </div>
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+          <h2 class="font-semibold text-slate-800 mb-4">📈 Status Dokumen</h2>
+          <div id="chartStatus"></div>
+        </div>
+      </div>
+
+      <!-- Reminder -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100">
+        <div class="px-5 py-3 border-b flex justify-between items-center">
+          <h2 class="font-semibold text-slate-800">🔔 Reminder Review (30 hari ke depan)</h2>
+          <a href="review-reminder.html" class="text-sm text-blue-600 hover:underline">Lihat semua</a>
+        </div>
+        <div id="reminders"></div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './assets/js/auth.js';
+    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
+    import { renderSidebar } from './assets/js/components/sidebar.js';
+    import { initDashboard } from './assets/js/pages/dashboard.js';
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('navbar').innerHTML = renderNavbar(user);
+      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'dashboard');
+      attachNavbarEvents();
+      initDashboard();
+    }
+  </script>
+</body>
+</html>
