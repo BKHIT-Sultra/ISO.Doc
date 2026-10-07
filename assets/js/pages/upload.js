@@ -1,23 +1,78 @@
 /**
- * Upload Page Controller
- * ----------------------
- * Handle form upload dan edit dokumen.
- * ASCII-safe: no emoji, string concat, no template literal.
+ * Upload Page Controller - REVISED
+ * ---------------------------------
+ * - Sub jenis conditional (muncul untuk Formulir & Eviden)
+ * - Standar auto-derive dari sub_jenis (tidak ada UI input)
+ * - Tanpa field Departemen & Email Pemilik
  */
 import { requireAuth } from '../auth.js';
 import { renderNavbar, attachNavbarEvents } from '../components/navbar.js';
 import { renderSidebar } from '../components/sidebar.js';
 import { apiPost, apiGet } from '../api.js';
-import { fileToBase64, validateFile, getQuery } from '../utils.js';
+import { fileToBase64, validateFile, getQuery, formatSize, delay } from '../utils.js';
 import { showToast } from '../components/toast.js';
 import { btnLoading, btnReset, showOverlay, hideOverlay, updateOverlayProgress } from '../components/loader.js';
+
+// ============================================================
+// KONFIGURASI SUB JENIS
+// ============================================================
+var SUB_JENIS_MAP = {
+  'Eviden':   ['K3', 'SMAP', 'SMM'],
+  'Formulir': ['FK3', 'FMM', 'FAP']
+};
+
+var SUB_JENIS_HINT = {
+  'Eviden':   'Pilih jenis bukti: K3 (keselamatan), SMAP (lingkungan), SMM (mutu)',
+  'Formulir': 'Pilih jenis formulir: FK3, FMM, atau FAP'
+};
+
+// ============================================================
+// AUTO-DERIVE STANDAR DARI JENIS + SUB JENIS
+// ============================================================
+function deriveStandar(jenis, subJenis) {
+  // Formulir
+  if (jenis === 'Formulir') {
+    if (subJenis === 'FMM') return 'SMM';
+    if (subJenis === 'FK3') return 'K3';
+    if (subJenis === 'FAP') return 'SMAP-AP';
+  }
+  // Eviden
+  if (jenis === 'Eviden') {
+    if (subJenis === 'K3')   return 'K3';
+    if (subJenis === 'SMAP') return 'SMAP';
+    if (subJenis === 'SMM')  return 'SMM';
+  }
+  // Default untuk Pedoman, Prosedur, IKK, Lampiran
+  return 'SMM,SMAP,K3,SMAP-AP';
+}
+
+// ============================================================
+// PLACEHOLDER KODE PER JENIS
+// ============================================================
+var KODE_PLACEHOLDER = {
+  'Pedoman':  'PED-01',
+  'Prosedur': 'PRO-9.2-01',
+  'IKK':      'IKK-8.5-03',
+  'Eviden':   'EVD-K3-001',
+  'Formulir': 'FMM-4.5.1-01',
+  'Lampiran': 'LMP-01'
+};
+
+var KODE_FORMAT_HINT = {
+  'Pedoman':  'Format: PED-NOMOR (contoh: PED-01)',
+  'Prosedur': 'Format: PRO-KLAUSUL-NOMOR (contoh: PRO-9.2-01)',
+  'IKK':      'Format: IKK-KLAUSUL-NOMOR (contoh: IKK-8.5-03)',
+  'Eviden':   'Format: EVD-KODE-NOMOR (contoh: EVD-K3-001)',
+  'Formulir': 'Format: PREFIX-KLAUSUL-NOMOR (contoh: FMM-4.5.1-01)',
+  'Lampiran': 'Format: LMP-NOMOR (contoh: LMP-01)'
+};
 
 // ============================================================
 // STATE
 // ============================================================
 var state = {
   user: null,
-  mode: 'create', // 'create' | 'edit'
+  mode: 'create',
   docId: null,
   selectedFile: null,
   existingDoc: null
@@ -35,24 +90,75 @@ document.getElementById('navbar').innerHTML = renderNavbar(user);
 document.getElementById('sidebar').innerHTML = renderSidebar(user, 'upload');
 attachNavbarEvents();
 
-// Set default tanggal terbit = hari ini
+// Set default tanggal = hari ini
 document.getElementById('tgl_terbit').valueAsDate = new Date();
 
-// Cek mode: edit kalau ada ?id=
+// Cek mode edit
 state.docId = getQuery('id');
 if (state.docId) {
   state.mode = 'edit';
   loadExistingDocument();
 }
 
-// Setup drag-drop
+// Setup event handlers
+setupJenisChange();
 setupDropZone();
-
-// Setup step indicator
 setupStepIndicator();
-
-// Setup submit
 setupSubmit();
+
+// ============================================================
+// JENIS → SUB JENIS (conditional)
+// ============================================================
+function setupJenisChange() {
+  var selJenis = document.getElementById('jenis');
+  if (!selJenis) return;
+
+  selJenis.addEventListener('change', function() {
+    var jenis = selJenis.value;
+
+    // Update placeholder kode
+    var kodeInput = document.getElementById('kode_dokumen');
+    if (kodeInput && !kodeInput.value) {
+      kodeInput.placeholder = KODE_PLACEHOLDER[jenis] 
+        ? 'Contoh: ' + KODE_PLACEHOLDER[jenis] 
+        : 'Contoh: FMM-4.5.1-01';
+    }
+    var kodeHint = document.getElementById('kodeHint');
+    if (kodeHint) {
+      kodeHint.textContent = KODE_FORMAT_HINT[jenis] || 'Format: PREFIX-KLAUSUL-NOMOR';
+    }
+
+    // Update sub jenis
+    updateSubJenis(jenis);
+  });
+}
+
+function updateSubJenis(jenis) {
+  var wrapper = document.getElementById('subJenisWrapper');
+  var sel = document.getElementById('sub_jenis');
+  var hint = document.getElementById('subJenisHint');
+
+  var options = SUB_JENIS_MAP[jenis];
+
+  if (!options) {
+    // Sembunyikan sub jenis
+    wrapper.classList.add('hidden');
+    sel.value = '';
+    sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>';
+    hint.textContent = '';
+    sel.removeAttribute('required');
+    return;
+  }
+
+  // Tampilkan sub jenis dengan opsi yang sesuai
+  wrapper.classList.remove('hidden');
+  sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>' +
+    options.map(function(o) {
+      return '<option value="' + o + '">' + o + '</option>';
+    }).join('');
+  sel.setAttribute('required', 'required');
+  hint.textContent = SUB_JENIS_HINT[jenis] || '';
+}
 
 // ============================================================
 // LOAD EXISTING DOC (EDIT MODE)
@@ -64,13 +170,11 @@ async function loadExistingDocument() {
     var data = await apiGet('getDocumentById', { doc_id: state.docId });
     state.existingDoc = data.document;
 
-    // Update UI header
     document.getElementById('pageTitle').textContent = 'Edit Dokumen';
     document.getElementById('pageSubtitle').textContent =
       'Perbarui data dokumen ' + state.existingDoc.kode_dokumen;
     document.querySelector('#btnSubmit span').textContent = 'Simpan Perubahan';
 
-    // Fill form
     fillForm(state.existingDoc);
 
     hideOverlay();
@@ -81,18 +185,24 @@ async function loadExistingDocument() {
 }
 
 function fillForm(d) {
+  // Set jenis dulu (biar trigger sub_jenis)
   setValue('jenis', d.jenis || '');
-  setValue('sub_jenis', d.sub_jenis || '');
+  
+  // Trigger sub jenis update
+  if (d.jenis && SUB_JENIS_MAP[d.jenis]) {
+    updateSubJenis(d.jenis);
+    setTimeout(function() {
+      setValue('sub_jenis', d.sub_jenis || '');
+    }, 50);
+  }
+
   setValue('kode_dokumen', d.kode_dokumen || '');
   setValue('judul', d.judul || '');
   setValue('sub_klausul', d.sub_klausul || '');
-  setValue('pemilik_departemen', d.pemilik_departemen || '');
-  setValue('pemilik_email', d.pemilik_email || '');
   setValue('kata_kunci', d.kata_kunci || '');
   setValue('keterangan', d.keterangan || '');
   setValue('frekuensi_review_bulan', d.frekuensi_review_bulan || 12);
 
-  // Tanggal
   if (d.tgl_terbit) {
     var tgl = new Date(d.tgl_terbit);
     if (!isNaN(tgl.getTime())) {
@@ -100,15 +210,10 @@ function fillForm(d) {
     }
   }
 
-  // Standar checkboxes
-  var standarArr = String(d.standar || '').split(',').map(function(s) { return s.trim(); });
-  document.querySelectorAll('.standar-cb').forEach(function(cb) {
-    cb.checked = standarArr.indexOf(cb.value) !== -1;
-  });
-
-  // Kode dokumen readonly saat edit
-  document.getElementById('kode_dokumen').setAttribute('readonly', 'readonly');
-  document.getElementById('kode_dokumen').classList.add('bg-slate-100', 'cursor-not-allowed');
+  // Kode readonly saat edit
+  var kodeEl = document.getElementById('kode_dokumen');
+  kodeEl.setAttribute('readonly', 'readonly');
+  kodeEl.classList.add('bg-slate-100', 'cursor-not-allowed');
 }
 
 function setValue(id, val) {
@@ -163,7 +268,6 @@ function handleFile(file) {
     showToast(v.error, 'error');
     return;
   }
-
   state.selectedFile = file;
   document.getElementById('fileName').textContent = file.name;
   document.getElementById('fileSize').textContent = formatSize(file.size);
@@ -171,17 +275,11 @@ function handleFile(file) {
   document.getElementById('dropZone').classList.add('hidden');
 }
 
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-}
-
 // ============================================================
-// STEP INDICATOR (visual feedback saat scroll)
+// STEP INDICATOR
 // ============================================================
 function setupStepIndicator() {
-  var sections = ['section1', 'section2', 'section3', 'section4'];
+  var sections = ['section1', 'section2', 'section3'];
   var dots = document.querySelectorAll('.step-dot');
 
   if (!('IntersectionObserver' in window)) return;
@@ -213,7 +311,6 @@ function setupSubmit() {
   document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Validasi
     var err = validateForm();
     if (err) {
       showToast(err, 'error');
@@ -242,12 +339,11 @@ function setupSubmit() {
 
 function validateForm() {
   var required = [
-    { id: 'jenis', label: 'Jenis Dokumen' },
+    { id: 'jenis',       label: 'Jenis Dokumen' },
     { id: 'kode_dokumen', label: 'Kode Dokumen' },
-    { id: 'judul', label: 'Judul Dokumen' },
+    { id: 'judul',       label: 'Judul Dokumen' },
     { id: 'sub_klausul', label: 'Klausul ISO' },
-    { id: 'pemilik_departemen', label: 'Departemen Pemilik' },
-    { id: 'tgl_terbit', label: 'Tanggal Terbit' }
+    { id: 'tgl_terbit',  label: 'Tanggal Terbit' }
   ];
 
   for (var i = 0; i < required.length; i++) {
@@ -258,10 +354,15 @@ function validateForm() {
     }
   }
 
-  // Standar minimal 1 dipilih
-  var standarCount = document.querySelectorAll('.standar-cb:checked').length;
-  if (standarCount === 0) {
-    return 'Pilih minimal 1 standar';
+  // Validasi sub jenis kalau wrapper visible
+  var subWrapper = document.getElementById('subJenisWrapper');
+  if (!subWrapper.classList.contains('hidden')) {
+    var sub = document.getElementById('sub_jenis').value;
+    if (!sub) {
+      showToast('Sub Jenis wajib dipilih untuk jenis ini', 'error');
+      document.getElementById('sub_jenis').focus();
+      return 'Sub Jenis wajib dipilih';
+    }
   }
 
   return null;
@@ -284,7 +385,7 @@ async function createDocument() {
     payload.fileBase64 = base64;
 
     updateOverlayProgress(65, 'Mengupload ke server...');
-    var result = await apiPost('createDocument', payload);
+    await apiPost('createDocument', payload);
 
     updateOverlayProgress(100, 'Berhasil!');
     await delay(500);
@@ -312,7 +413,6 @@ async function updateDocument() {
     var payload = buildPayload();
     payload.doc_id = state.docId;
 
-    // Kalau ada file baru
     if (state.selectedFile) {
       updateOverlayProgress(20, 'Membaca file...');
       payload.fileBase64 = await fileToBase64(state.selectedFile);
@@ -343,33 +443,28 @@ async function updateDocument() {
 // BUILD PAYLOAD
 // ============================================================
 function buildPayload() {
+  var jenis = document.getElementById('jenis').value;
+  var subJenis = document.getElementById('sub_jenis').value || '';
   var klausulFull = document.getElementById('sub_klausul').value.trim();
   var klausulUtama = klausulFull.split('.')[0] || '';
 
-  var standar = Array.prototype.slice.call(document.querySelectorAll('.standar-cb:checked'))
-    .map(function(cb) { return cb.value; })
-    .join(',');
+  // Auto-derive standar dari jenis + sub jenis
+  var standar = deriveStandar(jenis, subJenis);
 
   return {
-    kode_dokumen: document.getElementById('kode_dokumen').value.trim(),
-    judul: document.getElementById('judul').value.trim(),
-    jenis: document.getElementById('jenis').value,
-    sub_jenis: document.getElementById('sub_jenis').value,
-    klausul_utama: klausulUtama,
-    sub_klausul: klausulFull,
-    standar: standar,
-    pemilik_departemen: document.getElementById('pemilik_departemen').value.trim(),
-    pemilik_email: document.getElementById('pemilik_email').value.trim(),
-    tgl_terbit: document.getElementById('tgl_terbit').value,
+    kode_dokumen:          document.getElementById('kode_dokumen').value.trim(),
+    judul:                 document.getElementById('judul').value.trim(),
+    jenis:                 jenis,
+    sub_jenis:             subJenis,
+    klausul_utama:         klausulUtama,
+    sub_klausul:           klausulFull,
+    standar:               standar,
+    // Field yang tidak lagi diinput user — kirim default
+    pemilik_departemen:    '-',
+    pemilik_email:         '',
+    tgl_terbit:            document.getElementById('tgl_terbit').value,
     frekuensi_review_bulan: Number(document.getElementById('frekuensi_review_bulan').value) || 12,
-    kata_kunci: document.getElementById('kata_kunci').value.trim(),
-    keterangan: document.getElementById('keterangan').value.trim()
+    kata_kunci:            document.getElementById('kata_kunci').value.trim(),
+    keterangan:            document.getElementById('keterangan').value.trim()
   };
-}
-
-// ============================================================
-// HELPERS
-// ============================================================
-function delay(ms) {
-  return new Promise(function(resolve) { setTimeout(resolve, ms); });
 }
