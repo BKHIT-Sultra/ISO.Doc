@@ -1,13 +1,16 @@
 /**
- * API Wrapper - VERSI FIXED
- * -------------------------
- * Perbaikan: baca session.user dengan benar
+ * API Wrapper - VERSI FIXED + LOADING BAR
+ * ----------------------------------------
+ * - Baca session.user dengan benar
+ * - Top loading bar otomatis setiap request
+ * - Handle error terpusat
  */
 import { CONFIG } from './config.js';
 import { getSession } from './auth.js';
+import { showTopBar, hideTopBar } from './components/loader.js';
 
 /**
- * Ambil user_email & user_nama dari session dengan aman
+ * Ambil user context dari session dengan aman
  */
 function getUserContext() {
   const session = getSession();
@@ -18,7 +21,7 @@ function getUserContext() {
 }
 
 /**
- * Request GET
+ * ==================== REQUEST GET ====================
  */
 export async function apiGet(action, params = {}) {
   const ctx = getUserContext();
@@ -30,6 +33,8 @@ export async function apiGet(action, params = {}) {
     ...params
   });
 
+  showTopBar();
+
   try {
     const res = await fetch(`${CONFIG.API_URL}?${query}`, {
       method: 'GET',
@@ -37,22 +42,27 @@ export async function apiGet(action, params = {}) {
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const json = await res.json();
 
     if (!json.success) {
       handleApiError(json);
       throw new Error(json.error || 'Request gagal');
     }
+
     return json.data;
 
   } catch (err) {
     console.error('[apiGet]', action, err);
     throw err;
+
+  } finally {
+    hideTopBar();
   }
 }
 
 /**
- * Request POST
+ * ==================== REQUEST POST ====================
  */
 export async function apiPost(action, payload = {}) {
   const ctx = getUserContext();
@@ -64,36 +74,57 @@ export async function apiPost(action, payload = {}) {
     ...payload
   };
 
+  showTopBar();
+
   try {
     const res = await fetch(CONFIG.API_URL, {
       method: 'POST',
       mode: 'cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: {
+        // Gunakan text/plain untuk hindari CORS preflight OPTIONS
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
       body: JSON.stringify(body)
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const json = await res.json();
 
     if (!json.success) {
       handleApiError(json);
       throw new Error(json.error || 'Request gagal');
     }
+
     return json.data;
 
   } catch (err) {
     console.error('[apiPost]', action, err);
     throw err;
+
+  } finally {
+    hideTopBar();
   }
 }
 
 /**
- * Handle error terpusat
+ * ==================== ERROR HANDLING ====================
  */
 function handleApiError(json) {
+  // Sesi berakhir
   if (json.code === 401) {
-    alert('Sesi Anda berakhir. Silakan login ulang.');
-    localStorage.removeItem(CONFIG.SESSION_KEY);
-    setTimeout(() => location.href = 'login.html', 1000);
+    if (typeof window !== 'undefined') {
+      // Cegah multiple alert
+      if (!window.__sessionExpiredHandled) {
+        window.__sessionExpiredHandled = true;
+
+        alert('Sesi Anda berakhir. Silakan login ulang.');
+        localStorage.removeItem(CONFIG.SESSION_KEY);
+
+        setTimeout(() => {
+          location.href = 'login.html';
+        }, 1000);
+      }
+    }
   }
 }
