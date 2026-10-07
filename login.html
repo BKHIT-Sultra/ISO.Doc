@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/css/main.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,20 +12,17 @@
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; }
     
-    /* Animated gradient background */
     .gradient-bg {
       background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #6366f1);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
     }
-    
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* Floating shapes */
     .shape {
       position: absolute;
       border-radius: 50%;
@@ -34,36 +30,29 @@
       backdrop-filter: blur(10px);
       animation: float 20s infinite ease-in-out;
     }
-    .shape:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; animation-delay: 0s; }
+    .shape:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; }
     .shape:nth-child(2) { width: 200px; height: 200px; bottom: 10%; right: -50px; animation-delay: -5s; }
     .shape:nth-child(3) { width: 150px; height: 150px; top: 40%; left: 30%; animation-delay: -10s; }
-    .shape:nth-child(4) { width: 250px; height: 250px; bottom: -80px; left: 20%; animation-delay: -15s; }
 
     @keyframes float {
       0%, 100% { transform: translateY(0) rotate(0deg); }
       50% { transform: translateY(-30px) rotate(180deg); }
     }
 
-    /* Fade-in up animation */
-    .fade-in-up {
-      animation: fadeInUp 0.8s ease-out both;
-    }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out both; }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .fade-in-up-delay-1 { animation-delay: 0.1s; }
-    .fade-in-up-delay-2 { animation-delay: 0.2s; }
-    .fade-in-up-delay-3 { animation-delay: 0.3s; }
-    .fade-in-up-delay-4 { animation-delay: 0.4s; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
 
-    /* Input focus glow */
     .input-glow:focus {
       box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), 0 0 20px rgba(37, 99, 235, 0.15);
       border-color: #2563eb;
     }
 
-    /* Button gradient */
     .btn-gradient {
       background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #6366f1 100%);
       background-size: 200% 200%;
@@ -74,11 +63,7 @@
       box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
       transform: translateY(-2px);
     }
-    .btn-gradient:active:not(:disabled) {
-      transform: translateY(0);
-    }
 
-    /* Shake animation */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
@@ -86,45 +71,20 @@
     }
     .animate-shake { animation: shake 0.5s ease-in-out; }
 
-    /* Hide scrollbar */
-    body::-webkit-scrollbar { display: none; }
-    body { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Blob effect for logo */
-    .logo-pulse {
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-      50% { box-shadow: 0 0 0 20px rgba(37, 99, 235, 0); }
-    }
-
-    /* Feature list hover */
-    .feature-item {
-      transition: all 0.3s ease;
-    }
-    .feature-item:hover {
-      transform: translateX(8px);
-      color: #fff;
-    }
+    .feature-item { transition: all 0.3s ease; }
+    .feature-item:hover { transform: translateX(8px); }
   </style>
 </head>
 <body class="min-h-screen">
 
   <div class="grid lg:grid-cols-2 min-h-screen">
     
-    <!-- =============================== -->
-    <!-- LEFT PANEL - Brand & Marketing  -->
-    <!-- =============================== -->
+    <!-- LEFT PANEL -->
     <div class="gradient-bg relative overflow-hidden hidden lg:flex flex-col justify-between p-12 text-white">
-      
-      <!-- Floating shapes -->
-      <div class="shape"></div>
       <div class="shape"></div>
       <div class="shape"></div>
       <div class="shape"></div>
 
-      <!-- Content -->
       <div class="relative z-10 fade-in-up">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center 
@@ -139,7 +99,7 @@
       </div>
 
       <div class="relative z-10 space-y-8">
-        <div class="fade-in-up fade-in-up-delay-1">
+        <div class="fade-in-up delay-1">
           <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
             Kelola Dokumen<br/>
             <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
@@ -152,12 +112,10 @@
           </p>
         </div>
 
-        <!-- Feature List -->
-        <div class="space-y-3 fade-in-up fade-in-up-delay-2">
+        <div class="space-y-3 fade-in-up delay-2">
           <div class="feature-item flex items-center gap-3 text-blue-100">
-            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center 
-                        border border-white/20">
-              <span class="text-sm">📋</span>
+            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+              <span class="text-sm">1</span>
             </div>
             <div>
               <div class="font-semibold text-white text-sm">Kontrol Versi Dokumen</div>
@@ -166,20 +124,18 @@
           </div>
 
           <div class="feature-item flex items-center gap-3 text-blue-100">
-            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center 
-                        border border-white/20">
-              <span class="text-sm">✅</span>
+            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+              <span class="text-sm">2</span>
             </div>
             <div>
               <div class="font-semibold text-white text-sm">Workflow Persetujuan</div>
-              <div class="text-xs text-blue-200">Review & approval terstruktur</div>
+              <div class="text-xs text-blue-200">Review dan approval terstruktur</div>
             </div>
           </div>
 
           <div class="feature-item flex items-center gap-3 text-blue-100">
-            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center 
-                        border border-white/20">
-              <span class="text-sm">🔔</span>
+            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+              <span class="text-sm">3</span>
             </div>
             <div>
               <div class="font-semibold text-white text-sm">Reminder Review Otomatis</div>
@@ -188,70 +144,59 @@
           </div>
 
           <div class="feature-item flex items-center gap-3 text-blue-100">
-            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center 
-                        border border-white/20">
-              <span class="text-sm">📊</span>
+            <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+              <span class="text-sm">4</span>
             </div>
             <div>
               <div class="font-semibold text-white text-sm">Audit Trail Lengkap</div>
-              <div class="text-xs text-blue-200">Siap untuk audit internal & eksternal</div>
+              <div class="text-xs text-blue-200">Siap untuk audit internal dan eksternal</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="relative z-10 text-xs text-blue-200 fade-in-up fade-in-up-delay-3">
-        © 2025 ISO Doc Management · Kendari, Sulawesi Tenggara
+      <div class="relative z-10 text-xs text-blue-200 fade-in-up delay-3">
+        &copy; 2025 ISO Doc Management · Kendari, Sulawesi Tenggara
       </div>
     </div>
 
-    <!-- =============================== -->
-    <!-- RIGHT PANEL - Login Form        -->
-    <!-- =============================== -->
+    <!-- RIGHT PANEL -->
     <div class="flex items-center justify-center p-6 lg:p-12 bg-white relative overflow-hidden">
       
-      <!-- Subtle background decorations -->
       <div class="absolute top-0 right-0 w-72 h-72 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       <div class="absolute bottom-0 left-0 w-72 h-72 bg-indigo-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
       <div class="w-full max-w-md relative z-10">
         
-        <!-- Mobile-only logo -->
         <div class="lg:hidden text-center mb-8 fade-in-up">
           <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl 
                       mx-auto flex items-center justify-center text-white text-2xl font-bold 
-                      mb-3 logo-pulse shadow-lg shadow-blue-500/50">
+                      mb-3 shadow-lg shadow-blue-500/50">
             ISO
           </div>
           <h1 class="text-2xl font-bold text-slate-800">ISO Doc Management</h1>
           <p class="text-sm text-slate-500 mt-1">Sistem Manajemen Dokumen Terintegrasi</p>
         </div>
 
-        <!-- Welcome text -->
-        <div class="mb-8 fade-in-up fade-in-up-delay-1">
+        <div class="mb-8 fade-in-up delay-1">
           <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-800 mb-2">
-            Selamat Datang 👋
+            Selamat Datang
           </h2>
           <p class="text-slate-500 text-sm">
             Silakan masuk untuk mengakses sistem manajemen dokumen.
           </p>
         </div>
 
-        <!-- Form -->
-        <form id="loginForm" class="space-y-5 fade-in-up fade-in-up-delay-2" autocomplete="on">
+        <form id="loginForm" class="space-y-5 fade-in-up delay-2" autocomplete="on">
           
-          <!-- Error Box -->
           <div id="errorBox" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 
                                     text-sm rounded-r-lg p-3 flex items-start gap-2">
-            <span class="text-lg leading-none">⚠️</span>
+            <span class="text-lg leading-none">!</span>
             <span id="errorText" class="flex-1"></span>
           </div>
 
-          <!-- Email -->
           <div class="space-y-1.5">
-            <label for="email" class="block text-sm font-semibold text-slate-700">
-              Email
-            </label>
+            <label for="email" class="block text-sm font-semibold text-slate-700">Email</label>
             <div class="relative group">
               <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 
                           group-focus-within:text-blue-600 transition">
@@ -267,12 +212,9 @@
             </div>
           </div>
 
-          <!-- Password -->
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
-              <label for="password" class="block text-sm font-semibold text-slate-700">
-                Password
-              </label>
+              <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
               <a href="#" class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
                 Lupa password?
               </a>
@@ -286,24 +228,30 @@
                 </svg>
               </div>
               <input type="password" id="password" required autocomplete="current-password"
-                     placeholder="••••••••"
+                     placeholder="Masukkan password"
                      class="input-glow w-full pl-11 pr-12 py-3 border-2 border-slate-200 rounded-xl 
                             focus:outline-none transition text-slate-800 placeholder-slate-400">
               <button type="button" id="togglePassword"
                       class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 
-                             hover:text-slate-600 transition"
-                      title="Tampilkan password">
-                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                             hover:text-slate-600 transition">
+                <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" 
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" 
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
+                <svg id="eyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M15 12a3 3 0 11-6 0"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M3 3l18 18"/>
+                </svg>
               </button>
             </div>
           </div>
 
-          <!-- Remember me -->
           <div class="flex items-center">
             <input type="checkbox" id="remember" 
                    class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
@@ -312,7 +260,6 @@
             </label>
           </div>
 
-          <!-- Submit Button -->
           <button type="submit" id="btnLogin"
                   class="btn-gradient w-full text-white font-bold py-3.5 rounded-xl 
                          transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed 
@@ -321,15 +268,13 @@
           </button>
         </form>
 
-        <!-- Divider -->
-        <div class="my-6 flex items-center gap-3 fade-in-up fade-in-up-delay-3">
+        <div class="my-6 flex items-center gap-3 fade-in-up delay-3">
           <div class="flex-1 h-px bg-slate-200"></div>
           <span class="text-xs text-slate-400 uppercase tracking-wider">Butuh bantuan?</span>
           <div class="flex-1 h-px bg-slate-200"></div>
         </div>
 
-        <!-- Help text -->
-        <div class="text-center fade-in-up fade-in-up-delay-3">
+        <div class="text-center fade-in-up delay-3">
           <p class="text-sm text-slate-500">
             Belum punya akun? Hubungi
             <a href="mailto:admin@company.com" class="text-blue-600 font-semibold hover:underline">
@@ -338,8 +283,7 @@
           </p>
         </div>
 
-        <!-- Footer badge -->
-        <div class="mt-8 text-center fade-in-up fade-in-up-delay-4">
+        <div class="mt-8 text-center fade-in-up delay-3">
           <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 
                       rounded-full px-4 py-1.5 text-xs text-slate-500">
             <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -350,184 +294,9 @@
     </div>
   </div>
 
-  <!-- =============================== -->
-  <!-- SCRIPT                           -->
-  <!-- =============================== -->
-  <script type="module">
-    // ============================================================
-    // DIAGNOSTIC: Cek semua module yang dibutuhkan
-    // ============================================================
-    let login, getSession;
-    let loadError = null;
-  
-    try {
-      const authModule = await import('./assets/js/auth.js');
-      login = authModule.login;
-      getSession = authModule.getSession;
-  
-      if (typeof login !== 'function') {
-        loadError = 'auth.js tidak export fungsi "login"';
-      }
-      if (typeof getSession !== 'function') {
-        loadError = 'auth.js tidak export fungsi "getSession"';
-      }
-    } catch (e) {
-      console.error('❌ Detail error:', e);
-      loadError = e.message || String(e);
-    }
-  
-    // ============================================================
-    // Kalau ada error, tampilkan banner diagnostic
-    // ============================================================
-    if (loadError) {
-      const errBox = document.getElementById('errorBox');
-      const errText = document.getElementById('errorText');
-      errBox.classList.remove('hidden');
-      errText.innerHTML = `
-        <div class="font-semibold mb-1">⚠️ Gagal memuat modul autentikasi</div>
-        <div class="text-xs font-mono bg-red-100 p-2 rounded mt-1">${loadError}</div>
-        <div class="text-xs mt-2">
-          Cek Console (F12) untuk detail. Kemungkinan penyebab:
-          <ul class="list-disc ml-4 mt-1">
-            <li>File <code>assets/js/auth.js</code> tidak ada (404)</li>
-            <li>File <code>assets/js/api.js</code> tidak ada (404)</li>
-            <li>File <code>assets/js/components/loader.js</code> tidak ada (404)</li>
-            <li>Ada syntax error di salah satu file JS</li>
-          </ul>
-        </div>
-      `;
-      console.error('❌ Module load error:', loadError);
-    }
-  
-    // ============================================================
-    // Redirect kalau sudah login
-    // ============================================================
-    if (getSession && getSession()) {
-      location.href = 'dashboard.html';
-    }
-  
-    // ============================================================
-    // Element refs
-    // ============================================================
-    const form = document.getElementById('loginForm');
-    const btn = document.getElementById('btnLogin');
-    const btnText = document.getElementById('btnText');
-    const errBox = document.getElementById('errorBox');
-    const errText = document.getElementById('errorText');
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-    const togglePassword = document.getElementById('togglePassword');
-    const eyeIcon = document.getElementById('eyeIcon');
-  
-    // ============================================================
-    // Toggle Password
-    // ============================================================
-    togglePassword?.addEventListener('click', () => {
-      const isPassword = passInput.type === 'password';
-      passInput.type = isPassword ? 'text' : 'password';
-      eyeIcon.innerHTML = isPassword
-        ? `<path stroke-linecap="round" stroke-linejoin="round" 
-                 d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" 
-                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-           <path stroke-linecap="round" stroke-linejoin="round" 
-                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
-    });
-  
-    // ============================================================
-    // Loading state
-    // ============================================================
-    function setLoading(isLoading) {
-      btn.disabled = isLoading;
-      if (isLoading) {
-        btnText.innerHTML = `
-          <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>
-          <span>Memverifikasi...</span>
-        `;
-      } else {
-        btnText.textContent = 'Masuk ke Sistem';
-      }
-    }
-  
-    function showError(msg) {
-      errText.innerHTML = msg;
-      errBox.classList.remove('hidden');
-      form.classList.add('animate-shake');
-      setTimeout(() => form.classList.remove('animate-shake'), 500);
-    }
-  
-    function hideError() {
-      errBox.classList.add('hidden');
-      errText.textContent = '';
-    }
-  
-    // ============================================================
-    // Submit
-    // ============================================================
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-  
-      // Kalau modul tidak ter-load, tampilkan error diagnostik
-      if (!login) {
-        showError(`
-          <div class="font-semibold mb-1">⚠️ Modul autentikasi belum siap</div>
-          <div class="text-xs mt-1">${loadError || 'auth.js gagal dimuat'}</div>
-          <div class="text-xs mt-2">Buka Console (F12) untuk detail error.</div>
-        `);
-        return;
-      }
-  
-      const email = emailInput.value.trim().toLowerCase();
-      const password = passInput.value;
-  
-      if (!email || !password) {
-        showError('Email dan password wajib diisi');
-        return;
-      }
-  
-      hideError();
-      setLoading(true);
-  
-      try {
-        const user = await login(email, password);
-  
-        if (document.getElementById('remember').checked) {
-          localStorage.setItem('iso_doc_remember_email', email);
-        } else {
-          localStorage.removeItem('iso_doc_remember_email');
-        }
-  
-        btnText.innerHTML = `
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-          </svg>
-          <span>Berhasil! Mengalihkan...</span>
-        `;
-  
-        setTimeout(() => location.href = 'dashboard.html', 600);
-  
-      } catch (err) {
-        console.error('[Login Error]', err);
-        setLoading(false);
-        showError(err.message || 'Login gagal. Periksa email & password Anda.');
-      }
-    });
-  
-    // ============================================================
-    // Auto-fill email
-    // ============================================================
-    const remembered = localStorage.getItem('iso_doc_remember_email');
-    if (remembered) {
-      emailInput.value = remembered;
-      document.getElementById('remember').checked = true;
-      setTimeout(() => passInput.focus(), 300);
-    } else {
-      setTimeout(() => emailInput.focus(), 300);
-    }
-  </script>
+  <!-- ============================================ -->
+  <!-- SCRIPT: PAKAI FILE EXTERNAL (LEBIH BERSIH)   -->
+  <!-- ============================================ -->
+  <script src="assets/js/login-page.js" type="module"></script>
 </body>
 </html>
