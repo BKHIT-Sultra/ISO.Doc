@@ -196,11 +196,11 @@
             </div>
             <div>
               <h2 class="font-bold text-slate-800">Jadwal & Review</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Tanggal terbit & jadwal review berkala</p>
+              <p class="text-xs text-slate-500 mt-0.5">Tanggal terbit & catatan tambahan</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="grid grid-cols-1 gap-5">
 
             <!-- Tanggal Terbit -->
             <div>
@@ -208,26 +208,14 @@
                 Tanggal Terbit <span class="text-red-500">*</span>
               </label>
               <input id="tgl_terbit" type="date" required class="form-input">
-            </div>
-
-            <!-- Frekuensi Review -->
-            <div>
-              <label class="form-label">Frekuensi Review</label>
-              <div class="relative">
-                <input id="frekuensi_review_bulan" type="number" value="12" min="1" max="60"
-                       class="form-input pr-16">
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm 
-                             text-slate-500 font-semibold pointer-events-none">
-                  bulan
-                </span>
-              </div>
               <div class="form-hint">
-                Rekomendasi: 12 bulan (review tahunan)
+                Tanggal dokumen mulai berlaku. Review berikutnya dijadwalkan otomatis
+                <b class="text-slate-700">12 bulan</b> setelah tanggal ini.
               </div>
             </div>
 
             <!-- Kata Kunci -->
-            <div class="md:col-span-2">
+            <div>
               <label class="form-label">Kata Kunci</label>
               <input id="kata_kunci" type="text"
                      placeholder="risiko, penilaian, kriteria (pisahkan dengan koma)"
@@ -238,7 +226,7 @@
             </div>
 
             <!-- Keterangan -->
-            <div class="md:col-span-2">
+            <div>
               <label class="form-label">Keterangan</label>
               <textarea id="keterangan" rows="3"
                         placeholder="Catatan tambahan (opsional)..."
