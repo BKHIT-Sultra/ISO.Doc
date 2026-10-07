@@ -1,21 +1,32 @@
 /**
- * API Wrapper
- * -----------
- * Semua komunikasi ke Apps Script lewat sini.
+ * API Wrapper - VERSI FIXED
+ * -------------------------
+ * Perbaikan: baca session.user dengan benar
  */
 import { CONFIG } from './config.js';
 import { getSession } from './auth.js';
 
 /**
+ * Ambil user_email & user_nama dari session dengan aman
+ */
+function getUserContext() {
+  const session = getSession();
+  return {
+    user_email: session?.user?.email || '',
+    user_nama: session?.user?.nama || ''
+  };
+}
+
+/**
  * Request GET
  */
 export async function apiGet(action, params = {}) {
-  const session = getSession();
+  const ctx = getUserContext();
+
   const query = new URLSearchParams({
     action,
     apiKey: CONFIG.API_KEY,
-    user_email: session?.email || '',
-    user_nama: session?.nama || '',
+    ...ctx,
     ...params
   });
 
@@ -44,13 +55,12 @@ export async function apiGet(action, params = {}) {
  * Request POST
  */
 export async function apiPost(action, payload = {}) {
-  const session = getSession();
+  const ctx = getUserContext();
 
   const body = {
     action,
     apiKey: CONFIG.API_KEY,
-    user_email: session?.email || '',
-    user_nama: session?.nama || '',
+    ...ctx,
     ...payload
   };
 
@@ -58,7 +68,7 @@ export async function apiPost(action, payload = {}) {
     const res = await fetch(CONFIG.API_URL, {
       method: 'POST',
       mode: 'cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // hindari preflight
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(body)
     });
 
