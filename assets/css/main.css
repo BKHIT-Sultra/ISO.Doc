@@ -30,3 +30,19 @@ body {
 @media print {
   #navbar, #sidebar, .no-print { display: none !important; }
 }
+
+/* Shake animation untuk error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+  20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Fade in untuk overlay */
+#globalOverlay > div {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
