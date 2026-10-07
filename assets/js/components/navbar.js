@@ -1,7 +1,9 @@
 /**
- * Navbar Atas - Premium Version (No Search)
- * -----------------------------------------
- * Ornamen: Page Title (kiri) + Greeting (tengah) + User (kanan)
+ * Navbar Atas - Premium Version (No Brand Duplication)
+ * ----------------------------------------------------
+ * Kiri   : Breadcrumb (Home > Page)
+ * Tengah : Greeting + Tanggal
+ * Kanan  : Role + User Dropdown
  */
 import { logout } from '../auth.js';
 
@@ -25,7 +27,7 @@ var PAGE_MAP = {
 function getCurrentPage() {
   var path = window.location.pathname;
   var file = path.substring(path.lastIndexOf('/') + 1).replace('.html', '');
-  return PAGE_MAP[file] || { title: 'ISO Doc Management', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' };
+  return PAGE_MAP[file] || { title: 'Halaman', icon: 'M9 12h6m-6 4h6' };
 }
 
 // ============================================================
@@ -56,6 +58,7 @@ export function renderNavbar(user) {
   var page = getCurrentPage();
   var greeting = getGreeting();
   var firstName = (user.nama || 'User').split(' ')[0];
+  var isDashboard = window.location.pathname.indexOf('dashboard') !== -1;
 
   return `
     <header class="h-16 border-b border-slate-200/60 relative overflow-hidden" 
@@ -63,13 +66,10 @@ export function renderNavbar(user) {
       
       <!-- ===== ORNAMEN SUBTLE ===== -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <!-- Blob gradient kiri -->
         <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full opacity-[0.06]"
              style="background: radial-gradient(circle, #2563eb, transparent 70%);"></div>
-        <!-- Blob gradient tengah -->
         <div class="absolute -top-20 left-1/2 w-64 h-64 rounded-full opacity-[0.04] -translate-x-1/2"
              style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
-        <!-- Blob gradient kanan -->
         <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.06]"
              style="background: radial-gradient(circle, #8b5cf6, transparent 70%);"></div>
       </div>
@@ -77,8 +77,8 @@ export function renderNavbar(user) {
       <!-- ===== KONTEN ===== -->
       <div class="relative flex items-center justify-between px-4 lg:px-6 h-full gap-4">
         
-        <!-- KIRI: Hamburger (mobile) + Page Info -->
-        <div class="flex items-center gap-3 min-w-0 flex-shrink">
+        <!-- ============ KIRI: Hamburger + Breadcrumb ============ -->
+        <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
           
           <!-- Hamburger (mobile) -->
           <button id="toggleSidebar" 
@@ -90,34 +90,50 @@ export function renderNavbar(user) {
             </svg>
           </button>
 
-          <!-- Page Icon + Title -->
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
-                 style="background: linear-gradient(135deg, #2563eb, #6366f1);">
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <!-- Breadcrumb -->
+          <nav class="flex items-center gap-2 min-w-0">
+            
+            <!-- Home icon (kalau bukan dashboard) -->
+            ${!isDashboard ? `
+              <a href="dashboard.html" 
+                 class="flex items-center justify-center w-8 h-8 rounded-lg 
+                        text-slate-400 hover:text-blue-600 hover:bg-blue-50 
+                        transition flex-shrink-0"
+                 title="Kembali ke Dashboard">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+              </a>
+              
+              <!-- Separator -->
+              <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" 
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            ` : ''}
+            
+            <!-- Page Title -->
+            <div class="min-w-0 flex items-center gap-2">
+              <!-- Ikon kecil (bukan kotak gradient) -->
+              <svg class="w-4 h-4 text-blue-600 flex-shrink-0" 
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="${page.icon}"/>
               </svg>
-            </div>
-            <div class="min-w-0">
-              <div class="text-sm font-bold text-slate-800 truncate leading-tight">
+              
+              <h1 class="text-base font-bold text-slate-800 truncate">
                 ${page.title}
-              </div>
-              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold leading-tight hidden sm:block">
-                ISO Doc Management
-              </div>
+              </h1>
             </div>
-          </div>
+          </nav>
         </div>
 
-        <!-- TENGAH: Greeting (hidden di mobile) -->
+        <!-- ============ TENGAH: Greeting (hidden mobile) ============ -->
         <div class="hidden md:flex items-center gap-3 flex-1 justify-center min-w-0">
           
-          <!-- Divider kiri -->
           <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
           
-          <!-- Greeting -->
           <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50/80 border border-slate-100">
-            <!-- Dot pulse -->
             <span class="relative flex h-2 w-2 flex-shrink-0">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -138,14 +154,12 @@ export function renderNavbar(user) {
             </span>
           </div>
 
-          <!-- Divider kanan -->
           <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
         </div>
 
-        <!-- KANAN: Role + User Dropdown -->
+        <!-- ============ KANAN: Role + User ============ -->
         <div class="flex items-center gap-2 flex-shrink-0">
           
-          <!-- Role Badge -->
           <span class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 
                        rounded-lg bg-blue-50 border border-blue-100 text-blue-700 
                        text-xs font-semibold">
@@ -153,7 +167,6 @@ export function renderNavbar(user) {
             ${user.role}
           </span>
 
-          <!-- User Dropdown -->
           <div id="userMenuWrapper" class="relative">
             <button id="userMenuBtn" type="button"
                     class="flex items-center gap-2 px-2 py-1.5 rounded-xl 
@@ -175,7 +188,6 @@ export function renderNavbar(user) {
               </svg>
             </button>
 
-            <!-- Dropdown Menu -->
             <div id="userMenuDropdown"
                  class="hidden absolute right-0 top-full mt-2 bg-white border border-slate-200 
                         rounded-2xl min-w-[260px] z-[100] overflow-hidden"
@@ -221,7 +233,6 @@ export function renderNavbar(user) {
 // ATTACH EVENTS
 // ============================================================
 export function attachNavbarEvents() {
-  // ===== USER DROPDOWN =====
   var wrapper = document.getElementById('userMenuWrapper');
   var btn = document.getElementById('userMenuBtn');
   var dropdown = document.getElementById('userMenuDropdown');
@@ -255,11 +266,9 @@ export function attachNavbarEvents() {
     });
   }
 
-  // ===== LOGOUT =====
   var logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.onclick = logout;
 
-  // ===== TOGGLE SIDEBAR (mobile) =====
   var toggle = document.getElementById('toggleSidebar');
   if (toggle) {
     toggle.onclick = function() {
