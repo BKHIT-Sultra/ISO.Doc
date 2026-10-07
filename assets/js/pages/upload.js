@@ -265,20 +265,90 @@ async function loadExistingDocument() {
   try {
     showOverlay('Memuat dokumen', 'Mohon tunggu...');
     var data = await apiGet('getDocumentById', { doc_id: state.docId });
-    state.existingDoc = data.document;
+    var doc = data.document;
+
+    // ===== CEK IZIN EDIT =====
+    if (!canEditThisDoc(doc)) {
+      hideOverlay();
+      renderAccessDenied(doc);
+      return;
+    }
+
+    state.existingDoc = doc;
 
     document.getElementById('pageTitle').textContent = 'Edit Dokumen';
     document.getElementById('pageSubtitle').textContent =
-      'Perbarui data dokumen ' + state.existingDoc.kode_dokumen;
+      'Perbarui data dokumen ' + doc.kode_dokumen;
     var btnSpan = document.querySelector('#btnSubmit span');
     if (btnSpan) btnSpan.textContent = 'Simpan Perubahan';
 
-    fillForm(state.existingDoc);
+    fillForm(doc);
     hideOverlay();
   } catch (e) {
     hideOverlay();
     showToast('Gagal memuat dokumen: ' + e.message, 'error');
   }
+}
+
+/**
+ * Cek apakah user boleh edit dokumen ini
+ */
+function canEditThisDoc(doc) {
+  var u = state.user;
+  if (!u) return false;
+  
+  // Admin selalu bisa
+  if (u.role === 'Admin') return true;
+  
+  // Editor: Draft atau Review saja
+  if (u.role === 'Editor') {
+    return doc.status === 'Draft' || doc.status === 'Review';
+  }
+  
+  return false;
+}
+
+/**
+ * Tampilkan halaman akses ditolak
+ */
+function renderAccessDenied(doc) {
+  var form = document.getElementById('uploadForm');
+  if (!form) return;
+  
+  var reason = '';
+  if (doc.status === 'Approved') {
+    reason = 'Dokumen ini sudah <b>disetujui</b> dan tidak dapat diedit lagi. ' +
+             'Hanya <b>Admin</b> yang dapat mengubah dokumen yang sudah disetujui.';
+  } else if (doc.status === 'Obsolete') {
+    reason = 'Dokumen ini sudah <b>obsolete</b> dan tidak dapat diedit.';
+  } else {
+    reason = 'Anda tidak memiliki akses untuk mengedit dokumen ini.';
+  }
+  
+  form.innerHTML =
+    '<div class="card-premium p-12 text-center fade-in-up">' +
+      '<div class="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center" ' +
+           'style="background: linear-gradient(135deg, #fee2e2, #fecaca);">' +
+        '<svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="font-bold text-slate-800 text-xl mb-2">Dokumen Terkunci</div>' +
+      '<div class="text-sm text-slate-500 mb-1">' +
+        'Kode: <b class="font-mono text-slate-700">' + escapeHtml(doc.kode_dokumen) + '</b>' +
+      '</div>' +
+      '<div class="text-sm text-slate-600 max-w-md mx-auto mb-6">' +
+        reason +
+      '</div>' +
+      '<div class="flex flex-wrap gap-2 justify-center">' +
+        '<a href="document-detail.html?id=' + doc.doc_id + '" class="btn-secondary">' +
+          'Lihat Detail' +
+        '</a>' +
+        '<a href="documents.html" class="btn-gradient">' +
+          'Kembali ke Daftar' +
+        '</a>' +
+      '</div>' +
+    '</div>';
 }
 
 function fillForm(d) {
