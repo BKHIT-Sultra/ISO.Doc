@@ -6,42 +6,51 @@
   <title>Approval - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
-  <div id="navbar"></div>
+<body class="bg-slate-50 min-h-screen">
+  <div id="navbar" class="sticky top-0 z-40"></div>
 
   <div class="flex">
-    <div id="sidebar"></div>
+    <div id="sidebar" 
+         class="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto 
+                w-64 flex-shrink-0 hidden lg:block"></div>
 
-    <main class="flex-1 p-6">
-      <div class="max-w-5xl mx-auto">
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-slate-800">✅ Approval Dokumen</h1>
-          <p class="text-sm text-slate-500 mt-1">Dokumen yang menunggu persetujuan Anda</p>
-        </div>
+    <main class="flex-1 min-w-0 p-4 lg:p-8">
 
-        <div id="approvalList" class="space-y-3">
-          <div class="text-center py-10">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+      <!-- Page Header -->
+      <div class="mb-8 fade-in-up">
+        <div class="flex flex-wrap items-start gap-4">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
+               style="background: linear-gradient(135deg, #2563eb, #6366f1);">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-800 leading-tight">
+              Approval Dokumen
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">
+              Dokumen yang menunggu persetujuan Anda
+            </p>
           </div>
         </div>
       </div>
+
+      <!-- Mini Stats -->
+      <div id="approvalStats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 fade-in-up fade-in-up-1"></div>
+
+      <!-- List Container -->
+      <div id="approvalList" class="space-y-4">
+        <!-- Skeleton akan di-inject oleh JS -->
+      </div>
+
     </main>
   </div>
 
-  <script type="module">
-    import { requireAuth } from './assets/js/auth.js';
-    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
-    import { renderSidebar } from './assets/js/components/sidebar.js';
-    import { initApproval } from './assets/js/pages/approval.js';
-
-    const user = requireAuth();
-    if (user) {
-      document.getElementById('navbar').innerHTML = renderNavbar(user);
-      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'approval');
-      attachNavbarEvents();
-      initApproval(user);
-    }
-  </script>
+  <script src="assets/js/pages/approval-page.js" type="module"></script>
 </body>
 </html>
