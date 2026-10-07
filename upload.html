@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Dokumen - ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="bg-slate-50">
+  <div id="navbar"></div>
+
+  <div class="flex">
+    <div id="sidebar"></div>
+
+    <main class="flex-1 p-6">
+      <div class="max-w-4xl mx-auto">
+        <h1 id="pageTitle" class="text-2xl font-bold text-slate-800 mb-6">⬆️ Upload Dokumen Baru</h1>
+
+        <form id="uploadForm" class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Jenis -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Dokumen *</label>
+              <select id="jenis" required
+                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Pilih --</option>
+                <option>Pedoman</option>
+                <option>Prosedur</option>
+                <option>IKK</option>
+                <option>Formulir</option>
+                <option>Eviden</option>
+                <option>Lampiran</option>
+              </select>
+            </div>
+
+            <!-- Sub jenis -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Sub Jenis</label>
+              <select id="sub_jenis"
+                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-</option>
+                <option>FMM</option>
+                <option>FK3</option>
+                <option>FAP</option>
+              </select>
+            </div>
+
+            <!-- Kode -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Kode Dokumen *</label>
+              <input id="kode_dokumen" required placeholder="FMM-4.5.1-01"
+                     class="w-full px-3 py-2 border rounded-lg font-mono focus:ring-2 focus:ring-blue-500">
+              <p class="text-xs text-slate-500 mt-1">💡 Format: PREFIX-KLAUSUL-NOMOR</p>
+            </div>
+
+            <!-- Judul -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Judul Dokumen *</label>
+              <input id="judul" required placeholder="Penilaian Risiko"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Klausul -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Klausul ISO *</label>
+              <input id="sub_klausul" required placeholder="4.5.1"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Standar -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Standar *</label>
+              <div class="flex flex-wrap gap-3 mt-1">
+                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMM"> SMM</label>
+                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMAP"> SMAP</label>
+                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="K3"> K3</label>
+                <label class="flex items-center gap-1 text-sm"><input type="checkbox" class="standar-cb" value="SMAP-AP"> SMAP-AP</label>
+              </div>
+            </div>
+
+            <!-- Pemilik -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Departemen Pemilik *</label>
+              <input id="pemilik_departemen" required placeholder="Quality Control"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Email Pemilik</label>
+              <input id="pemilik_email" type="email" placeholder="qc@company.com"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Tgl terbit -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Terbit *</label>
+              <input id="tgl_terbit" type="date" required
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Frekuensi Review (bulan)</label>
+              <input id="frekuensi_review_bulan" type="number" value="12" min="1"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Kata kunci -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Kata Kunci</label>
+              <input id="kata_kunci" placeholder="risiko, penilaian, kriteria (pisah koma)"
+                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Keterangan -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Keterangan</label>
+              <textarea id="keterangan" rows="2"
+                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <!-- File Upload -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1">File Dokumen *</label>
+              <div id="dropZone"
+                   class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center 
+                          hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer">
+                <div class="text-4xl mb-2">📎</div>
+                <div class="text-sm text-slate-600">
+                  Drag & drop file di sini, atau <span class="text-blue-600 font-semibold">klik untuk pilih</span>
+                </div>
+                <div class="text-xs text-slate-400 mt-1">PDF, DOCX, XLSX, PNG, JPG (max 10 MB)</div>
+                <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg">
+              </div>
+              <div id="filePreview" class="mt-3 hidden bg-blue-50 p-3 rounded-lg flex items-center gap-3">
+                <span class="text-2xl">📄</span>
+                <div class="flex-1">
+                  <div id="fileName" class="text-sm font-medium"></div>
+                  <div id="fileSize" class="text-xs text-slate-500"></div>
+                </div>
+                <button type="button" id="btnClearFile" class="text-red-500">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t">
+            <a href="documents.html" class="px-4 py-2 border rounded-lg hover:bg-slate-50">Batal</a>
+            <button type="submit" id="btnSubmit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold 
+                           disabled:opacity-50 transition">
+              💾 Simpan sebagai Draft
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './assets/js/auth.js';
+    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
+    import { renderSidebar } from './assets/js/components/sidebar.js';
+    import { apiPost, apiGet } from './assets/js/api.js';
+    import { fileToBase64, validateFile, getQuery } from './assets/js/utils.js';
+    import { showToast } from './assets/js/components/toast.js';
+
+    const user = requireAuth();
+    if (!user) throw new Error('No auth');
+
+    document.getElementById('navbar').innerHTML = renderNavbar(user);
+    document.getElementById('sidebar').innerHTML = renderSidebar(user, 'upload');
+    attachNavbarEvents();
+
+    // Set tgl default = hari ini
+    document.getElementById('tgl_terbit').valueAsDate = new Date();
+
+    // Drag & drop
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    let selectedFile = null;
+
+    dropZone.onclick = () => fileInput.click();
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('border-blue-500');
+    dropZone.ondrop = (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-500');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    };
+    fileInput.onchange = () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    };
+    document.getElementById('btnClearFile').onclick = (e) => {
+      e.stopPropagation();
+      selectedFile = null;
+      fileInput.value = '';
+      filePreview.classList.add('hidden');
+    };
+
+    function handleFile(file) {
+      const v = validateFile(file);
+      if (!v.valid) { showToast(v.error, 'error'); return; }
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+      filePreview.classList.remove('hidden');
+    }
+
+    // Submit
+    document.getElementById('uploadForm').onsubmit = async (e) => {
+      e.preventDefault();
+      if (!selectedFile) { showToast('File wajib diupload', 'error'); return; }
+
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.textContent = '⏳ Mengupload...';
+
+      try {
+        const standar = Array.from(document.querySelectorAll('.standar-cb:checked'))
+          .map(cb => cb.value).join(',');
+
+        const base64 = await fileToBase64(selectedFile);
+
+        const payload = {
+          kode_dokumen: document.getElementById('kode_dokumen').value.trim(),
+          judul: document.getElementById('judul').value.trim(),
+          jenis: document.getElementById('jenis').value,
+          sub_jenis: document.getElementById('sub_jenis').value,
+          klausul_utama: document.getElementById('sub_klausul').value.split('.')[0],
+          sub_klausul: document.getElementById('sub_klausul').value.trim(),
+          standar,
+          pemilik_departemen: document.getElementById('pemilik_departemen').value.trim(),
+          pemilik_email: document.getElementById('pemilik_email').value.trim(),
+          tgl_terbit: document.getElementById('tgl_terbit').value,
+          frekuensi_review_bulan: Number(document.getElementById('frekuensi_review_bulan').value),
+          kata_kunci: document.getElementById('kata_kunci').value.trim(),
+          keterangan: document.getElementById('keterangan').value.trim(),
+          fileName: selectedFile.name,
+          mimeType: selectedFile.type,
+          fileBase64: base64
+        };
+
+        await apiPost('createDocument', payload);
+        showToast('✅ Dokumen berhasil dibuat!', 'success');
+        setTimeout(() => location.href = 'documents.html', 1200);
+
+      } catch (err) {
+        showToast(err.message || 'Gagal upload', 'error');
+        btn.disabled = false;
+        btn.textContent = '💾 Simpan sebagai Draft';
+      }
+    };
+  </script>
+</body>
+</html>
