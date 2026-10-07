@@ -185,3 +185,40 @@ export function inlineSpinner(size = 'md') {
     </div>
   `;
 }
+
+// ============================================================
+// 5. TOP LOADING BAR (ala YouTube/GitHub)
+// ============================================================
+let topBarTimer = null;
+
+export function showTopBar() {
+  let bar = document.getElementById('topProgressBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'topProgressBar';
+    bar.className = 'fixed top-0 left-0 h-0.5 bg-blue-600 z-[999] transition-all duration-300';
+    bar.style.width = '0%';
+    document.body.appendChild(bar);
+  }
+
+  // Animasi: naik cepat ke 30%, lalu pelan sampai 90%
+  bar.style.width = '30%';
+  clearTimeout(topBarTimer);
+  topBarTimer = setTimeout(() => {
+    bar.style.width = '60%';
+    topBarTimer = setTimeout(() => {
+      bar.style.width = '90%';
+    }, 800);
+  }, 200);
+}
+
+export function hideTopBar() {
+  const bar = document.getElementById('topProgressBar');
+  if (!bar) return;
+  clearTimeout(topBarTimer);
+  bar.style.width = '100%';
+  setTimeout(() => {
+    bar.style.opacity = '0';
+    setTimeout(() => bar.remove(), 300);
+  }, 300);
+}
