@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumen - ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="bg-slate-50">
+  <div id="navbar"></div>
+
+  <div class="flex">
+    <div id="sidebar"></div>
+
+    <main class="flex-1 p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">📁 Daftar Dokumen</h1>
+          <p class="text-sm text-slate-500 mt-1">
+            <span id="totalDocs">0</span> dokumen terdaftar
+          </p>
+        </div>
+        <a href="upload.html" class="bg-blue-600 hover:bg-blue-700 text-white 
+                                   px-4 py-2 rounded-lg text-sm font-semibold transition">
+          + Tambah Dokumen
+        </a>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-slate-100">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <select id="filterJenis" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Semua Jenis</option>
+          </select>
+          <select id="filterKlausul" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Semua Klausul</option>
+            <option value="4">Klausul 4 - Konteks Organisasi</option>
+            <option value="5">Klausul 5 - Kepemimpinan</option>
+            <option value="6">Klausul 6 - Perencanaan</option>
+            <option value="7">Klausul 7 - Pendukung</option>
+            <option value="8">Klausul 8 - Operasi</option>
+            <option value="9">Klausul 9 - Evaluasi Kinerja</option>
+            <option value="10">Klausul 10 - Peningkatan</option>
+          </select>
+          <select id="filterStatus" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Semua Status</option>
+            <option value="Draft">Draft</option>
+            <option value="Review">Review</option>
+            <option value="Approved">Approved</option>
+            <option value="Obsolete">Obsolete</option>
+          </select>
+          <input id="searchBox" type="text" placeholder="🔍 Cari kode/judul..."
+                 class="px-3 py-2 border rounded-lg text-sm">
+          <button id="btnReset" class="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">
+            ↺ Reset Filter
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabel -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-100">
+              <tr class="text-left text-xs font-semibold text-slate-600 uppercase">
+                <th class="p-3">Kode</th>
+                <th class="p-3">Judul</th>
+                <th class="p-3">Jenis</th>
+                <th class="p-3">Versi</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Terbit</th>
+                <th class="p-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="docTableBody"></tbody>
+          </table>
+        </div>
+        <div id="pagination" class="p-4 border-t border-slate-100 flex justify-center"></div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './assets/js/auth.js';
+    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
+    import { renderSidebar } from './assets/js/components/sidebar.js';
+    import { initDocuments } from './assets/js/pages/documents.js';
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('navbar').innerHTML = renderNavbar(user);
+      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'documents');
+      attachNavbarEvents();
+      initDocuments(user);
+    }
+  </script>
+</body>
+</html>
