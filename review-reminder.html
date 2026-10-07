@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminder Review - ISO Doc Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="bg-slate-50">
+  <div id="navbar"></div>
+
+  <div class="flex">
+    <div id="sidebar"></div>
+
+    <main class="flex-1 p-6">
+      <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-slate-800">🔔 Reminder Review</h1>
+            <p class="text-sm text-slate-500 mt-1">Dokumen yang perlu ditinjau ulang</p>
+          </div>
+          <div class="flex gap-2">
+            <select id="fHari" class="px-3 py-2 border rounded-lg text-sm">
+              <option value="7">7 hari</option>
+              <option value="30" selected>30 hari</option>
+              <option value="60">60 hari</option>
+              <option value="90">90 hari</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="reminderContent"></div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './assets/js/auth.js';
+    import { renderNavbar, attachNavbarEvents } from './assets/js/components/navbar.js';
+    import { renderSidebar } from './assets/js/components/sidebar.js';
+    import { initReviewReminder } from './assets/js/pages/review-reminder.js';
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('navbar').innerHTML = renderNavbar(user);
+      document.getElementById('sidebar').innerHTML = renderSidebar(user, 'review-reminder');
+      attachNavbarEvents();
+      initReviewReminder(user);
+    }
+  </script>
+</body>
+</html>
