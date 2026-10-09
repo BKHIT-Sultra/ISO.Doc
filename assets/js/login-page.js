@@ -1,6 +1,9 @@
 /**
  * Login Page Controller dengan hCaptcha
  * --------------------------------------
+ * - Verifikasi hCaptcha wajib sebelum login
+ * - Reset hCaptcha otomatis setelah error
+ * - Auto-fill email jika "Remember Me" dicentang
  */
 import { login, getSession } from '../auth.js';
 
@@ -8,7 +11,11 @@ import { login, getSession } from '../auth.js';
 // STATE
 // ============================================================
 var captchaToken = null;
+var captchaReady = false;
 
+// ============================================================
+// INIT
+// ============================================================
 if (getSession()) {
   location.href = 'dashboard.html';
 }
@@ -26,22 +33,25 @@ var eyeOpen = document.getElementById('eyeOpen');
 var eyeClosed = document.getElementById('eyeClosed');
 
 // ============================================================
-// ★ hCaptcha CALLBACKS
+// ★ hCaptcha CALLBACKS — Dipanggil oleh hCaptcha
 // ============================================================
 window.onCaptchaSuccess = function(token) {
   captchaToken = token;
+  captchaReady = true;
   console.log('[login] hCaptcha verified ✅');
   hideError();
 };
 
 window.onCaptchaExpired = function() {
   captchaToken = null;
+  captchaReady = false;
   console.warn('[login] hCaptcha expired');
   showError('Verifikasi hCaptcha sudah kadaluarsa. Silakan ulangi.');
 };
 
 window.onCaptchaError = function(errorCode) {
   captchaToken = null;
+  captchaReady = false;
   console.error('[login] hCaptcha error:', errorCode);
   showError('Terjadi kesalahan pada verifikasi hCaptcha. Silakan muat ulang halaman.');
 };
@@ -63,6 +73,7 @@ if (toggleBtn) {
 // ============================================================
 function setLoading(isLoading) {
   btn.disabled = isLoading;
+
   if (isLoading) {
     btnText.textContent = 'Memverifikasi...';
     var spinner = document.createElement('div');
@@ -83,20 +94,23 @@ function showError(msg) {
   errText.textContent = msg;
   errBox.classList.remove('hidden');
   form.classList.add('animate-shake');
-  setTimeout(function() { form.classList.remove('animate-shake'); }, 500);
+  setTimeout(function() {
+    form.classList.remove('animate-shake');
+  }, 500);
 }
+
 function hideError() {
   errBox.classList.add('hidden');
   errText.textContent = '';
 }
 
 // ============================================================
-// RESET CAPTCHA
+// ★ RESET CAPTCHA — versi hCaptcha
 // ============================================================
 function resetCaptcha() {
   captchaToken = null;
-  // hCaptcha reset menggunakan window.hcaptcha.reset()
-  if (window.hcaptcha) {
+  captchaReady = false;
+  if (window.hcaptcha) {              // ← hcaptcha, bukan turnstile
     try {
       window.hcaptcha.reset();
       console.log('[login] hCaptcha reset');
@@ -116,15 +130,19 @@ form.addEventListener('submit', async function(e) {
   var email = emailInput.value.trim().toLowerCase();
   var password = passInput.value;
 
+  // Validasi dasar
   if (!email || !password) {
     showError('Email dan password wajib diisi');
     return;
   }
+
+  // Validasi email format
   var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     showError('Format email tidak valid');
     return;
   }
+
   // ★ Validasi hCaptcha
   if (!captchaToken) {
     showError('Silakan selesaikan verifikasi hCaptcha terlebih dahulu');
@@ -137,18 +155,25 @@ form.addEventListener('submit', async function(e) {
   try {
     var user = await login(email, password, captchaToken);
 
+    // Simpan preferensi "remember me"
     if (document.getElementById('remember').checked) {
       localStorage.setItem('iso_doc_remember_email', email);
     } else {
       localStorage.removeItem('iso_doc_remember_email');
     }
+
     btnText.textContent = 'Berhasil! Mengalihkan...';
-    setTimeout(function() { location.href = 'dashboard.html'; }, 600);
+
+    setTimeout(function() {
+      location.href = 'dashboard.html';
+    }, 600);
 
   } catch (err) {
     console.error('[Login Error]', err);
     setLoading(false);
     showError(err.message || 'Login gagal. Periksa email dan password Anda.');
+
+    // ★ Reset hCaptcha setiap kali error
     resetCaptcha();
   }
 });
@@ -164,3 +189,13 @@ if (remembered) {
 } else {
   setTimeout(function() { emailInput.focus(); }, 300);
 }
+
+// ============================================================
+// WATCHDOG: Cek hCaptcha setelah 3 detik
+// ============================================================
+setTimeout(function() {
+  var widget = document.querySelector('.h-captcha');
+  if (widget && !widget.querySelector('iframe')) {
+    console.warn('[login] hCaptcha widget belum ter-load. Cek koneksi internet atau Site Key.');
+  }
+}, 3000);
