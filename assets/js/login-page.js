@@ -1,62 +1,94 @@
 /**
- * Login Page Controller
- * ---------------------
- * Dipisah dari HTML agar tidak ada masalah karakter escape.
+ * Login Page Controller dengan Turnstile CAPTCHA
+ * -----------------------------------------------
+ * - Verifikasi CAPTCHA wajib sebelum login
+ * - Reset CAPTCHA otomatis setelah error
+ * - Auto-fill email jika "Remember Me" dicentang
  */
-import { login, getSession } from './auth.js';
+import { login, getSession } from '../auth.js';
 
 // ============================================================
-// Redirect kalau sudah login
+// STATE
+// ============================================================
+var captchaToken = null;
+var captchaReady = false;
+
+// ============================================================
+// INIT
 // ============================================================
 if (getSession()) {
   location.href = 'dashboard.html';
 }
 
-// ============================================================
 // Element refs
-// ============================================================
-const form = document.getElementById('loginForm');
-const btn = document.getElementById('btnLogin');
-const btnText = document.getElementById('btnText');
-const errBox = document.getElementById('errorBox');
-const errText = document.getElementById('errorText');
-const emailInput = document.getElementById('email');
-const passInput = document.getElementById('password');
-const toggleBtn = document.getElementById('togglePassword');
-const eyeOpen = document.getElementById('eyeOpen');
-const eyeClosed = document.getElementById('eyeClosed');
+var form = document.getElementById('loginForm');
+var btn = document.getElementById('btnLogin');
+var btnText = document.getElementById('btnText');
+var errBox = document.getElementById('errorBox');
+var errText = document.getElementById('errorText');
+var emailInput = document.getElementById('email');
+var passInput = document.getElementById('password');
+var toggleBtn = document.getElementById('togglePassword');
+var eyeOpen = document.getElementById('eyeOpen');
+var eyeClosed = document.getElementById('eyeClosed');
 
 // ============================================================
-// Toggle Password Visibility
+// CAPTCHA CALLBACKS — Dipanggil oleh Cloudflare Turnstile
 // ============================================================
-toggleBtn.addEventListener('click', function() {
-  const isHidden = passInput.type === 'password';
-  passInput.type = isHidden ? 'text' : 'password';
-  eyeOpen.classList.toggle('hidden', isHidden);
-  eyeClosed.classList.toggle('hidden', !isHidden);
-});
+window.onCaptchaSuccess = function(token) {
+  captchaToken = token;
+  captchaReady = true;
+  console.log('[login] CAPTCHA verified ✅');
+  hideError();
+};
+
+window.onCaptchaExpired = function() {
+  captchaToken = null;
+  captchaReady = false;
+  console.warn('[login] CAPTCHA expired');
+  showError('CAPTCHA sudah kadaluarsa. Silakan verifikasi ulang.');
+};
+
+window.onCaptchaError = function(errorCode) {
+  captchaToken = null;
+  captchaReady = false;
+  console.error('[login] CAPTCHA error:', errorCode);
+  showError('Terjadi kesalahan pada CAPTCHA. Silakan refresh halaman.');
+};
 
 // ============================================================
-// Loading state
+// TOGGLE PASSWORD VISIBILITY
+// ============================================================
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', function() {
+    var isHidden = passInput.type === 'password';
+    passInput.type = isHidden ? 'text' : 'password';
+    eyeOpen.classList.toggle('hidden', isHidden);
+    eyeClosed.classList.toggle('hidden', !isHidden);
+  });
+}
+
+// ============================================================
+// LOADING STATE
 // ============================================================
 function setLoading(isLoading) {
   btn.disabled = isLoading;
-  
+
   if (isLoading) {
     btnText.textContent = 'Memverifikasi...';
-    const spinner = document.createElement('div');
+    var spinner = document.createElement('div');
     spinner.id = 'btnSpinner';
     spinner.className = 'animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full';
     btn.insertBefore(spinner, btnText);
   } else {
     btnText.textContent = 'Masuk ke Sistem';
-    const spinner = document.getElementById('btnSpinner');
-    if (spinner) spinner.remove();
+    var sp = document.getElementById('btnSpinner');
+    if (sp) sp.remove();
   }
 }
 
 // ============================================================
-// Error handling
+// ERROR HANDLING
 // ============================================================
 function showError(msg) {
   errText.textContent = msg;
@@ -73,17 +105,47 @@ function hideError() {
 }
 
 // ============================================================
-// Submit
+// RESET CAPTCHA — setelah error
+// ============================================================
+function resetCaptcha() {
+  captchaToken = null;
+  captchaReady = false;
+  if (window.turnstile) {
+    try {
+      window.turnstile.reset();
+      console.log('[login] CAPTCHA reset');
+    } catch (e) {
+      console.warn('[login] Gagal reset CAPTCHA:', e);
+    }
+  }
+}
+
+// ============================================================
+// SUBMIT HANDLER
 // ============================================================
 form.addEventListener('submit', async function(e) {
   e.preventDefault();
   e.stopPropagation();
 
-  const email = emailInput.value.trim().toLowerCase();
-  const password = passInput.value;
+  var email = emailInput.value.trim().toLowerCase();
+  var password = passInput.value;
 
+  // Validasi dasar
   if (!email || !password) {
     showError('Email dan password wajib diisi');
+    return;
+  }
+
+  // Validasi email format
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showError('Format email tidak valid');
+    return;
+  }
+
+  // ★ Validasi CAPTCHA
+  if (!captchaToken) {
+    showError('Silakan selesaikan verifikasi CAPTCHA terlebih dahulu');
     return;
   }
 
@@ -91,8 +153,9 @@ form.addEventListener('submit', async function(e) {
   setLoading(true);
 
   try {
-    const user = await login(email, password);
+    var user = await login(email, password, captchaToken);
 
+    // Simpan preferensi "remember me"
     if (document.getElementById('remember').checked) {
       localStorage.setItem('iso_doc_remember_email', email);
     } else {
@@ -109,13 +172,16 @@ form.addEventListener('submit', async function(e) {
     console.error('[Login Error]', err);
     setLoading(false);
     showError(err.message || 'Login gagal. Periksa email dan password Anda.');
+
+    // ★ Reset CAPTCHA setiap kali error
+    resetCaptcha();
   }
 });
 
 // ============================================================
-// Auto-fill remembered email
+// AUTO-FILL REMEMBERED EMAIL
 // ============================================================
-const remembered = localStorage.getItem('iso_doc_remember_email');
+var remembered = localStorage.getItem('iso_doc_remember_email');
 if (remembered) {
   emailInput.value = remembered;
   document.getElementById('remember').checked = true;
@@ -123,3 +189,13 @@ if (remembered) {
 } else {
   setTimeout(function() { emailInput.focus(); }, 300);
 }
+
+// ============================================================
+// WATCHDOG: Cek CAPTCHA setelah 3 detik
+// ============================================================
+setTimeout(function() {
+  var widget = document.querySelector('.cf-turnstile');
+  if (widget && !widget.querySelector('iframe')) {
+    console.warn('[login] CAPTCHA widget belum ter-load. Cek koneksi internet.');
+  }
+}, 3000);
