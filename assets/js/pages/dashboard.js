@@ -438,35 +438,83 @@ function showKlausulDetail(klausulId) {
         'Obsolete': 'bg-red-100 text-red-700'
       }[d.status] || 'bg-slate-100 text-slate-700';
 
-      content += '<a href="document-detail.html?id=' + d.doc_id + '" ' +
-                    'class="block bg-white border border-slate-200 rounded-xl p-3 ' +
-                           'hover:border-blue-300 hover:shadow-md hover:shadow-blue-500/10 ' +
-                           'transition group">';
-      content += '  <div class="flex items-start gap-3">';
+      var hasFile = d.drive_file_url && d.drive_file_url.length > 0;
+
+      content += '<div class="bg-white border border-slate-200 rounded-xl p-3 ' +
+                      'hover:border-blue-300 hover:shadow-md hover:shadow-blue-500/10 ' +
+                      'transition">';
+      
+      // Baris atas: info dokumen
+      content += '  <div class="flex items-start gap-3 mb-3">';
+      
+      // Icon
       content += '    <div class="w-10 h-10 rounded-lg flex items-center justify-center ' +
                        'flex-shrink-0" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">';
-      content += '      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">';
-      content += '        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>';
+      content += '      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" ' +
+                       'viewBox="0 0 24 24" stroke-width="2">';
+      content += '        <path stroke-linecap="round" stroke-linejoin="round" ' +
+                       'd="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>';
       content += '      </svg>';
       content += '    </div>';
+      
+      // Info
       content += '    <div class="flex-1 min-w-0">';
-      content += '      <div class="flex items-center gap-2 mb-1">';
+      content += '      <div class="flex flex-wrap items-center gap-1.5 mb-1">';
       content += '        <span class="font-mono text-xs text-slate-500">' + escapeHtml(d.kode_dokumen) + '</span>';
       content += '        <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">' + escapeHtml(d.jenis) + '</span>';
       content += '        <span class="text-xs px-1.5 py-0.5 rounded font-semibold ' + statusCls + '">' + escapeHtml(d.status) + '</span>';
       content += '      </div>';
-      content += '      <div class="font-semibold text-sm text-slate-800 group-hover:text-blue-600 transition truncate">' +
+      content += '      <div class="font-semibold text-sm text-slate-800 truncate">' +
                        escapeHtml(d.judul) + '</div>';
       content += '      <div class="text-xs text-slate-500 mt-0.5">' +
                        'v' + escapeHtml(d.versi_terkini || '01') + ' &middot; ' +
                        escapeHtml(d.pemilik_departemen || '-') + '</div>';
       content += '    </div>';
-      content += '    <svg class="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition flex-shrink-0 mt-2" ' +
-                       'fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">';
-      content += '      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>';
-      content += '    </svg>';
+      
       content += '  </div>';
-      content += '</a>';
+      
+      // Baris bawah: 2 tombol aksi
+      content += '  <div class="flex gap-2 pt-3 border-t border-slate-100">';
+      
+      // Tombol 1: Lihat Dokumen
+      if (hasFile) {
+        content += '<a href="' + d.drive_file_url + '" target="_blank" rel="noopener" ' +
+                        'class="flex-1 inline-flex items-center justify-center gap-1.5 ' +
+                               'px-3 py-2 text-xs font-semibold text-white rounded-lg ' +
+                               'bg-gradient-to-br from-blue-600 to-indigo-600 ' +
+                               'hover:shadow-lg hover:shadow-blue-500/30 transition">' +
+          '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+          '</svg>' +
+          'Lihat Dokumen' +
+        '</a>';
+      } else {
+        // Tombol disabled kalau tidak ada file
+        content += '<button type="button" disabled ' +
+                        'class="flex-1 inline-flex items-center justify-center gap-1.5 ' +
+                               'px-3 py-2 text-xs font-semibold text-slate-400 rounded-lg ' +
+                               'bg-slate-100 cursor-not-allowed">' +
+          '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>' +
+          '</svg>' +
+          'Tidak ada file' +
+        '</button>';
+      }
+      
+      // Tombol 2: Detail
+      content += '<a href="document-detail.html?id=' + d.doc_id + '" ' +
+                      'class="flex-1 inline-flex items-center justify-center gap-1.5 ' +
+                             'px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg ' +
+                             'bg-slate-100 hover:bg-slate-200 transition">' +
+        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' +
+        '</svg>' +
+        'Detail' +
+      '</a>';
+      
+      content += '  </div>';
+      content += '</div>';
     });
 
     content += '</div>';
