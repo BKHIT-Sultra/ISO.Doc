@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - ISO Doc Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ★ Turnstile Script -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -73,6 +75,14 @@
 
     .feature-item { transition: all 0.3s ease; }
     .feature-item:hover { transform: translateX(8px); }
+
+    /* Custom Turnstile container */
+    .captcha-container {
+      min-height: 65px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -122,7 +132,6 @@
               <div class="text-xs text-blue-200">Setiap perubahan tercatat rapi</div>
             </div>
           </div>
-
           <div class="feature-item flex items-center gap-3 text-blue-100">
             <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
               <span class="text-sm">2</span>
@@ -132,7 +141,6 @@
               <div class="text-xs text-blue-200">Review dan approval terstruktur</div>
             </div>
           </div>
-
           <div class="feature-item flex items-center gap-3 text-blue-100">
             <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
               <span class="text-sm">3</span>
@@ -142,7 +150,6 @@
               <div class="text-xs text-blue-200">Tidak ada dokumen kadaluarsa</div>
             </div>
           </div>
-
           <div class="feature-item flex items-center gap-3 text-blue-100">
             <div class="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
               <span class="text-sm">4</span>
@@ -260,6 +267,18 @@
             </label>
           </div>
 
+          <!-- ★ TURNSTILE CAPTCHA WIDGET -->
+          <div id="captchaWrapper" class="captcha-container">
+            <div class="cf-turnstile" 
+                 data-sitekey="6LeU0-YtAAAAAHOHK73iyyNg8hJ7MFEW0hJyWqTb"
+                 data-theme="light"
+                 data-size="normal"
+                 data-callback="onCaptchaSuccess"
+                 data-expired-callback="onCaptchaExpired"
+                 data-error-callback="onCaptchaError">
+            </div>
+          </div>
+
           <button type="submit" id="btnLogin"
                   class="btn-gradient w-full text-white font-bold py-3.5 rounded-xl 
                          transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed 
@@ -277,7 +296,7 @@
         <div class="text-center fade-in-up delay-3">
           <p class="text-sm text-slate-500">
             Belum punya akun? Hubungi
-            <a href="mailto:iqfast.kt@gmail.com" class="text-blue-600 font-semibold hover:underline">
+            <a href="mailto:admin@company.com" class="text-blue-600 font-semibold hover:underline">
               Administrator IT
             </a>
           </p>
@@ -287,16 +306,13 @@
           <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 
                       rounded-full px-4 py-1.5 text-xs text-slate-500">
             <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            Sistem aktif · v1.0.0
+            Dilindungi Cloudflare Turnstile
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ============================================ -->
-  <!-- SCRIPT: PAKAI FILE EXTERNAL (LEBIH BERSIH)   -->
-  <!-- ============================================ -->
-  <script src="assets/js/login-page.js" type="module"></script>
+  <script src="assets/js/pages/login-page.js" type="module"></script>
 </body>
 </html>
