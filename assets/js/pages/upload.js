@@ -80,13 +80,15 @@ var state = {
   mode: 'create',
   docId: null,
   selectedFile: null,
-  existingDoc: null
+  existingDoc: null,
+  klausulMaster: [],           // ← BARU: semua klausul dari Master
+  selectedKlausul: []          // ← BARU: klausul yang dipilih user
 };
 
 // ============================================================
 // INIT
 // ============================================================
-function initPage() {
+async function initPage() {
   console.log('[upload] ==========================================');
   console.log('[upload] Init mulai...');
 
@@ -185,6 +187,13 @@ function initPage() {
     console.error('[upload] ❌ setupSubmit GAGAL:', e);
   }
 
+  // ★ BARU: Setup multi-klausul
+  try {
+    await loadKlausulMaster();
+    setupKlausulPicker();
+    console.log('[upload] ✅ Klausul picker terpasang');
+  } 
+
   console.log('[upload] ========== INIT SELESAI ✅ ==========');
 }
 
@@ -193,6 +202,245 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initPage);
 } else {
   initPage();
+}
+
+// ============================================================
+// LOAD KLAUSUL MASTER
+// ============================================================
+async function loadKlausulMaster() {
+  try {
+    var data = await apiGet('getKlausul');
+    state.klausulMaster = data || [];
+    console.log('[upload] Klausul master loaded:', state.klausulMaster.length, 'items');
+  } catch (e) {
+    console.error('[upload] Gagal load klausul:', e);
+    state.klausulMaster = [];
+  }
+}
+
+// ============================================================
+// SETUP KLAUSUL PICKER
+// ============================================================
+function setupKlausulPicker() {
+  var picker = document.getElementById('klausulChips');
+  var dropdown = document.getElementById('klausulDropdown');
+  var chevron = document.getElementById('klausulChevron');
+  var search = document.getElementById('klausulSearch');
+  var clearBtn = document.getElementById('klausulClear');
+
+  if (!picker || !dropdown) {
+    console.error('[upload] Klausul picker elements tidak ditemukan');
+    return;
+  }
+
+  // Toggle dropdown
+  picker.addEventListener('click', function(e) {
+    if (e.target.closest('[data-chip-remove]')) return; // skip kalau klik tombol X
+    var isOpen = !dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden');
+    if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    if (!isOpen) setTimeout(function() { search && search.focus(); }, 100);
+  });
+
+  // Search
+  if (search) {
+    search.addEventListener('input', function() {
+      renderKlausulList(search.value.trim());
+    });
+  }
+
+  // Clear all
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      state.selectedKlausul = [];
+      renderKlausulChips();
+      renderKlausulList(search ? search.value.trim() : '');
+    });
+  }
+
+  // Click outside → close
+  document.addEventListener('click', function(e) {
+    var wrapper = document.getElementById('klausulWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      dropdown.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+  });
+
+  // Render awal
+  renderKlausulChips();
+  renderKlausulList('');
+}
+
+// ============================================================
+// RENDER KLAUSUL LIST (di dropdown)
+// ============================================================
+function renderKlausulList(filter) {
+  var list = document.getElementById('klausulList');
+  if (!list) return;
+
+  filter = (filter || '').toLowerCase();
+
+  var items = state.klausulMaster.filter(function(k) {
+    if (!filter) return true;
+    var hay = (String(k.klausul_id) + ' ' + String(k.judul_klausul || '')).toLowerCase();
+    return hay.indexOf(filter) !== -1;
+  });
+
+  if (!items.length) {
+    list.innerHTML = '<div class="p-4 text-sm text-slate-500 text-center">' +
+      'Tidak ada klausul yang cocok</div>';
+    return;
+  }
+
+  // Group by bab
+  var grouped = {};
+  items.forEach(function(k) {
+    var bab = k.bab || 'Lainnya';
+    if (!grouped[bab]) grouped[bab] = [];
+    grouped[bab].push(k);
+  });
+
+  var html = '';
+  Object.keys(grouped).forEach(function(bab) {
+    html += '<div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 ' +
+                  'uppercase tracking-wider bg-slate-50 sticky top-0">' +
+              bab +
+            '</div>';
+    grouped[bab].forEach(function(k) {
+      var isSelected = state.selectedKlausul.indexOf(String(k.klausul_id)) !== -1;
+      html += '<label class="flex items-start gap-2.5 px-3 py-2 rounded-lg ' +
+                    'hover:bg-slate-50 cursor-pointer transition">' +
+        '<input type="checkbox" data-klausul-id="' + escapeAttr(k.klausul_id) + '" ' +
+               (isSelected ? 'checked ' : '') +
+               'class="mt-0.5 w-4 h-4 rounded text-blue-600 border-slate-300 ' +
+                      'focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0">' +
+        '<div class="min-w-0 flex-1">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="font-mono font-bold text-blue-600 text-xs">' +
+              escapeHtml(k.klausul_id) +
+            '</span>' +
+          '</div>' +
+          '<div class="text-xs text-slate-600 mt-0.5 truncate">' +
+            escapeHtml(k.judul_klausul || '-') +
+          '</div>' +
+        '</div>' +
+      '</label>';
+    });
+  });
+
+  list.innerHTML = html;
+
+  // Attach change handler
+  list.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      toggleKlausul(cb.dataset.klausulId, cb.checked);
+    });
+  });
+}
+
+// ============================================================
+// TOGGLE KLAUSUL (add/remove)
+// ============================================================
+function toggleKlausul(klausulId, checked) {
+  var id = String(klausulId);
+  var idx = state.selectedKlausul.indexOf(id);
+
+  if (checked && idx === -1) {
+    state.selectedKlausul.push(id);
+  } else if (!checked && idx !== -1) {
+    state.selectedKlausul.splice(idx, 1);
+  }
+
+  renderKlausulChips();
+  updateKlausulCount();
+}
+
+// ============================================================
+// RENDER CHIPS
+// ============================================================
+function renderKlausulChips() {
+  var container = document.getElementById('klausulChips');
+  var placeholder = document.getElementById('klausulPlaceholder');
+  if (!container) return;
+
+  // Hapus chips lama
+  container.querySelectorAll('[data-chip]').forEach(function(el) { el.remove(); });
+
+  if (!state.selectedKlausul.length) {
+    if (placeholder) placeholder.style.display = '';
+    updateKlausulCount();
+    return;
+  }
+
+  if (placeholder) placeholder.style.display = 'none';
+
+  // Ambil judul klausul dari master
+  state.selectedKlausul.forEach(function(kId) {
+    var master = state.klausulMaster.find(function(k) {
+      return String(k.klausul_id) === kId;
+    });
+    var judul = master ? master.judul_klausul : '';
+
+    var chip = document.createElement('span');
+    chip.setAttribute('data-chip', kId);
+    chip.className = 'inline-flex items-center gap-1 pl-2 pr-1 py-1 ' +
+                     'bg-blue-100 text-blue-700 rounded-md text-xs font-semibold';
+    chip.innerHTML =
+      '<span class="font-mono">' + escapeHtml(kId) + '</span>' +
+      (judul ? '<span class="text-blue-500 font-normal truncate max-w-[140px]">' + 
+               escapeHtml(judul) + '</span>' : '') +
+      '<button type="button" data-chip-remove="' + escapeAttr(kId) + '" ' +
+              'class="w-4 h-4 rounded flex items-center justify-center ' +
+                     'hover:bg-blue-200 transition flex-shrink-0">' +
+        '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>' +
+        '</svg>' +
+      '</button>';
+    container.appendChild(chip);
+  });
+
+  // Attach remove handler
+  container.querySelectorAll('[data-chip-remove]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var kId = btn.dataset.chipRemove;
+      var idx = state.selectedKlausul.indexOf(kId);
+      if (idx !== -1) {
+        state.selectedKlausul.splice(idx, 1);
+        renderKlausulChips();
+        renderKlausulList(document.getElementById('klausulSearch')?.value.trim() || '');
+      }
+    });
+  });
+
+  updateKlausulCount();
+}
+
+// ============================================================
+// UPDATE COUNTER DI FOOTER DROPDOWN
+// ============================================================
+function updateKlausulCount() {
+  var el = document.getElementById('klausulCount');
+  if (el) el.textContent = state.selectedKlausul.length;
+}
+
+// ============================================================
+// ESCAPE HELPERS (untuk atribut HTML)
+// ============================================================
+function escapeAttr(str) {
+  return String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ============================================================
@@ -363,9 +611,18 @@ function fillForm(d) {
 
   setValue('kode_dokumen', d.kode_dokumen || '');
   setValue('judul', d.judul || '');
-  setValue('sub_klausul', d.sub_klausul || '');
   setValue('kata_kunci', d.kata_kunci || '');
   setValue('keterangan', d.keterangan || '');
+
+  // ★ Parse multi klausul
+  var klausulRaw = String(d.sub_klausul || d.klausul_utama || '').trim();
+  state.selectedKlausul = klausulRaw
+    ? klausulRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
+    : [];
+
+  // Re-render chips
+  renderKlausulChips();
+  renderKlausulList('');
 
   if (d.tgl_terbit) {
     var tgl = new Date(d.tgl_terbit);
@@ -514,7 +771,6 @@ function validateForm() {
     { id: 'jenis',        label: 'Jenis Dokumen' },
     { id: 'kode_dokumen', label: 'Kode Dokumen' },
     { id: 'judul',        label: 'Judul Dokumen' },
-    { id: 'sub_klausul',  label: 'Klausul ISO' },
     { id: 'tgl_terbit',   label: 'Tanggal Terbit' }
   ];
 
@@ -526,6 +782,13 @@ function validateForm() {
     }
   }
 
+  // ★ Validasi minimal 1 klausul dipilih
+  if (state.selectedKlausul.length === 0) {
+    showToast('Pilih minimal 1 Klausul ISO', 'warning');
+    return 'Klausul ISO wajib dipilih';
+  }
+
+  // Validasi sub jenis (kalau visible)
   var subWrapper = document.getElementById('subJenisWrapper');
   if (subWrapper && !subWrapper.classList.contains('hidden')) {
     var sub = document.getElementById('sub_jenis').value;
@@ -602,8 +865,12 @@ async function updateDocument() {
 function buildPayload() {
   var jenis = document.getElementById('jenis').value;
   var subJenis = document.getElementById('sub_jenis').value || '';
-  var klausulFull = document.getElementById('sub_klausul').value.trim();
-  var klausulUtama = klausulFull.split('.')[0] || '';
+
+  // ★ Multi klausul
+  var klausulStr = state.selectedKlausul.join(',');
+  var klausulUtama = state.selectedKlausul.length > 0 
+    ? state.selectedKlausul[0].split('.')[0] 
+    : '';
 
   return {
     kode_dokumen:           document.getElementById('kode_dokumen').value.trim(),
@@ -611,7 +878,7 @@ function buildPayload() {
     jenis:                  jenis,
     sub_jenis:              subJenis,
     klausul_utama:          klausulUtama,
-    sub_klausul:            klausulFull,
+    sub_klausul:            klausulStr,       // ← "4.5.1,4.5.2,9.2"
     standar:                deriveStandar(jenis, subJenis),
     pemilik_departemen:     '-',
     pemilik_email:          '',
