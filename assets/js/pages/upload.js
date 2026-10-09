@@ -166,6 +166,13 @@ async function initPage() {
     console.error('[upload] ❌ setupJenisChange GAGAL:', e);
   }
 
+  // ★ Set state awal (sub jenis hidden)
+  try {
+    updateSubJenis('');
+  } catch (e) {
+    console.error('[upload] ❌ Init sub jenis GAGAL:', e);
+  }
+
   try {
     setupDropZone();
     console.log('[upload] ✅ Drop zone terpasang');
@@ -192,7 +199,9 @@ async function initPage() {
     await loadKlausulMaster();
     setupKlausulPicker();
     console.log('[upload] ✅ Klausul picker terpasang');
-  } 
+  } catch (e) {
+    console.error('[upload] ❌ Klausul picker GAGAL:', e);
+  }
 
   console.log('[upload] ========== INIT SELESAI ✅ ==========');
 }
@@ -478,7 +487,7 @@ function updateSubJenis(jenis) {
   var wrapper = document.getElementById('subJenisWrapper');
   var sel = document.getElementById('sub_jenis');
   var hint = document.getElementById('subJenisHint');
-  var kodeWrapper = document.getElementById('kodeWrapper');  // ← TAMBAH
+  var kodeWrapper = document.getElementById('kodeWrapper');
 
   if (!wrapper || !sel) {
     console.error('[upload] subJenisWrapper atau sub_jenis tidak ada');
@@ -489,14 +498,22 @@ function updateSubJenis(jenis) {
   console.log('[upload] updateSubJenis:', jenis, '→', options);
 
   if (!options) {
+    // ===== SEMBUNYIKAN SUB JENIS =====
     wrapper.classList.add('hidden');
     sel.value = '';
     sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>';
     if (hint) hint.textContent = '';
     sel.removeAttribute('required');
+
+    // ★ Kode ambil lebar penuh (8 cols)
+    if (kodeWrapper) {
+      kodeWrapper.classList.remove('md:col-span-4');
+      kodeWrapper.classList.add('md:col-span-8');
+    }
     return;
   }
 
+  // ===== TAMPILKAN SUB JENIS =====
   wrapper.classList.remove('hidden');
   sel.innerHTML = '<option value="">-- Pilih Sub Jenis --</option>' +
     options.map(function(o) {
@@ -504,6 +521,12 @@ function updateSubJenis(jenis) {
     }).join('');
   sel.setAttribute('required', 'required');
   if (hint) hint.textContent = SUB_JENIS_HINT[jenis] || '';
+
+  // ★ Kode mengecil (4 cols) supaya bisa sekamar dengan Sub Jenis
+  if (kodeWrapper) {
+    kodeWrapper.classList.remove('md:col-span-8');
+    kodeWrapper.classList.add('md:col-span-4');
+  }
 }
 
 // ============================================================
