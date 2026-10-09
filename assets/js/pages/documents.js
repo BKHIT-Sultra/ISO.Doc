@@ -30,6 +30,30 @@ let state = {
 export async function initDocuments(user) {
   state.user = user;
 
+  // ★ Handle query param ?klausul= dari dashboard
+  const urlKlausul = new URLSearchParams(location.search).get('klausul');
+  if (urlKlausul) {
+    state.filters.klausul = urlKlausul;
+    // Update dropdown klausul kalau ada
+    const selKlausul = document.getElementById('filterKlausul');
+    if (selKlausul) {
+      // Cek apakah opsi sudah ada
+      let optExists = false;
+      Array.from(selKlausul.options).forEach(function(opt) {
+        if (opt.value === urlKlausul) optExists = true;
+      });
+      // Kalau belum ada, tambah opsi temporary
+      if (!optExists) {
+        const opt = document.createElement('option');
+        opt.value = urlKlausul;
+        opt.textContent = 'Klausul ' + urlKlausul;
+        selKlausul.appendChild(opt);
+      }
+      selKlausul.value = urlKlausul;
+    }
+    console.log('[documents] Filter klausul dari URL:', urlKlausul);
+  }
+
   // Populate dropdown jenis
   const selJenis = document.getElementById('filterJenis');
   if (selJenis) {
