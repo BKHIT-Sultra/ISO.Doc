@@ -266,28 +266,33 @@ function renderEditButton(d) {
 // RENDER SUBTITLE KLAUSUL (di bawah Judul)
 // ============================================================
 function renderKlausulInfo(d) {
-  var kode = String(d.sub_klausul || d.klausul_utama || '').trim();
-  if (!kode) {
-    return '<div class="text-xs text-slate-400 mt-1">-</div>';
-  }
+  var raw = String(d.sub_klausul || d.klausul_utama || '').trim();
+  if (!raw) return '<div class="text-xs text-slate-400 mt-1">-</div>';
 
-  var judulKlausul = state.klausulMap[kode] || '';
+  var kodes = raw.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+  if (!kodes.length) return '<div class="text-xs text-slate-400 mt-1">-</div>';
+
+  // Ambil judul klausul pertama sebagai judul utama
+  var firstKode = kodes[0];
+  var firstJudul = state.klausulMap[firstKode] || '';
 
   var html = '<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">';
-
-  // Ikon tag
   html += '<svg class="w-3 h-3 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">';
-  html += '  <path stroke-linecap="round" stroke-linejoin="round" ' +
-                'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>';
+  html += '  <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>';
   html += '</svg>';
+  html += '<span class="font-mono font-bold text-blue-600">' + escapeHtml(firstKode) + '</span>';
 
-  // Kode klausul (bold biru)
-  html += '<span class="font-mono font-bold text-blue-600">' + escapeHtml(kode) + '</span>';
-
-  // Judul klausul dari Master_Klausul
-  if (judulKlausul) {
+  if (firstJudul) {
     html += '<span class="text-slate-300">&middot;</span>';
-    html += '<span class="truncate">' + escapeHtml(judulKlausul) + '</span>';
+    html += '<span class="truncate">' + escapeHtml(firstJudul) + '</span>';
+  }
+
+  // Kalau ada lebih dari 1 klausul → badge "+N"
+  if (kodes.length > 1) {
+    html += '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md ' +
+                  'bg-blue-100 text-blue-700 text-[10px] font-bold">' +
+              '+' + (kodes.length - 1) +
+            '</span>';
   }
 
   html += '</div>';
