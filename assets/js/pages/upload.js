@@ -194,7 +194,7 @@ async function initPage() {
     console.error('[upload] ❌ setupSubmit GAGAL:', e);
   }
 
-  // ★ BARU: Setup multi-klausul
+  // ===== STEP 8: MULTI-KLAUSUL =====
   try {
     await loadKlausulMaster();
     setupKlausulPicker();
