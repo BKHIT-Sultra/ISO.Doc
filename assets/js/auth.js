@@ -1,19 +1,18 @@
 /**
  * Modul Autentikasi & Session
  * ----------------------------
- * Fitur:
  * - Session dengan idle timeout 30 menit
  * - Absolute timeout 12 jam
- * - Auto-extend activity tracking
+ * - Login dengan CAPTCHA token
  */
 import { CONFIG } from './config.js';
 import { apiPost } from './api.js';
 
-// ===== KONFIGURASI SESSION =====
+// ===== SESSION CONFIG =====
 var SESSION_CONFIG = {
-  IDLE_TIMEOUT_MS: 30 * 60 * 1000,        // 30 menit
+  IDLE_TIMEOUT_MS: 30 * 60 * 1000,          // 30 menit
   ABSOLUTE_TIMEOUT_MS: 12 * 60 * 60 * 1000, // 12 jam
-  WARNING_BEFORE_MS: 2 * 60 * 1000         // Warning 2 menit sebelum idle logout
+  WARNING_BEFORE_MS: 2 * 60 * 1000          // 2 menit
 };
 
 var activityTimer = null;
@@ -29,8 +28,6 @@ export function saveSession(data) {
     loginAt: now,
     lastActivity: now
   }));
-
-  // Mulai tracking activity
   startActivityTracking();
 }
 
@@ -44,22 +41,20 @@ export function getSession() {
 
     var session = JSON.parse(raw);
 
-    // ===== Cek absolute timeout =====
+    // Cek absolute timeout
     if (session.loginAt) {
       var loginTime = new Date(session.loginAt).getTime();
-      var now = Date.now();
-      if (now - loginTime > SESSION_CONFIG.ABSOLUTE_TIMEOUT_MS) {
+      if (Date.now() - loginTime > SESSION_CONFIG.ABSOLUTE_TIMEOUT_MS) {
         console.warn('[auth] Absolute timeout — auto logout');
         clearSession();
         return null;
       }
     }
 
-    // ===== Cek idle timeout =====
+    // Cek idle timeout
     if (session.lastActivity) {
       var lastAct = new Date(session.lastActivity).getTime();
-      var now2 = Date.now();
-      if (now2 - lastAct > SESSION_CONFIG.IDLE_TIMEOUT_MS) {
+      if (Date.now() - lastAct > SESSION_CONFIG.IDLE_TIMEOUT_MS) {
         console.warn('[auth] Idle timeout — auto logout');
         clearSession();
         return null;
@@ -73,7 +68,7 @@ export function getSession() {
 }
 
 // ============================================================
-// UPDATE ACTIVITY (reset idle timer)
+// TOUCH SESSION — reset idle timer
 // ============================================================
 export function touchSession() {
   try {
@@ -95,7 +90,7 @@ export function clearSession() {
 }
 
 // ============================================================
-// REQUIRE AUTH (redirect kalau tidak ada session)
+// REQUIRE AUTH
 // ============================================================
 export function requireAuth() {
   var session = getSession();
@@ -103,18 +98,19 @@ export function requireAuth() {
     location.href = 'login.html';
     return null;
   }
-
-  // Mulai tracking kalau belum
   startActivityTracking();
-
   return session.user;
 }
 
 // ============================================================
-// LOGIN
+// LOGIN — dengan CAPTCHA
 // ============================================================
-export async function login(email, password) {
-  var result = await apiPost('login', { email, password });
+export async function login(email, password, captchaToken) {
+  var result = await apiPost('login', {
+    email: email,
+    password: password,
+    captcha_token: captchaToken
+  });
   saveSession(result);
   return result.user;
 }
@@ -147,18 +143,14 @@ export function hasRole(user, allowedRoles) {
 }
 
 // ============================================================
-// ACTIVITY TRACKING (internal)
+// ACTIVITY TRACKING
 // ============================================================
 function startActivityTracking() {
-  // Hapus listener lama kalau ada
   stopActivityTracking();
 
-  // Touch session setiap 1 menit
   activityTimer = setInterval(function() {
-    var session = getSession(); // getSession sudah cek timeout
-
+    var session = getSession();
     if (!session) {
-      // Session sudah expired
       if (activityTimer) {
         clearInterval(activityTimer);
         activityTimer = null;
@@ -166,7 +158,6 @@ function startActivityTracking() {
       return;
     }
 
-    // Cek apakah mendekati idle timeout (warning)
     var lastAct = new Date(session.lastActivity).getTime();
     var idleDuration = Date.now() - lastAct;
 
@@ -176,12 +167,10 @@ function startActivityTracking() {
         showIdleWarning();
       }
     }
-  }, 60000); // cek tiap 1 menit
+  }, 60000);
 
-  // Attach listener untuk user activity
   var events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
   var handler = debounceTouch();
-
   events.forEach(function(evt) {
     document.addEventListener(evt, handler, { passive: true });
   });
@@ -194,14 +183,10 @@ function stopActivityTracking() {
   }
 }
 
-// ============================================================
-// DEBOUNCE TOUCH (biar tidak spam)
-// ============================================================
 function debounceTouch() {
   var lastTouch = 0;
   return function() {
     var now = Date.now();
-    // Update lastActivity max 1x per 30 detik
     if (now - lastTouch > 30000) {
       lastTouch = now;
       touchSession();
@@ -210,14 +195,12 @@ function debounceTouch() {
 }
 
 // ============================================================
-// IDLE WARNING (munculkan alert sebelum logout)
+// IDLE WARNING
 // ============================================================
 function showIdleWarning() {
-  // Cek apakah session masih ada
   var session = getSession();
   if (!session) return;
 
-  // Tampilkan konfirmasi
   var confirmed = window.confirm(
     '⚠️ Sesi Anda akan berakhir dalam 2 menit karena tidak ada aktivitas.\n\n' +
     'Klik OK untuk tetap login, atau Cancel untuk logout sekarang.'
