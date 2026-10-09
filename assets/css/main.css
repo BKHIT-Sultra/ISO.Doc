@@ -626,3 +626,54 @@ html { scroll-behavior: smooth; }
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
+
+/* ============================================================
+   MODAL FULLSCREEN ANIMATION
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Pastikan overlay bisa di-scroll sendiri */
+#klausulFullscreen {
+  animation: none;
+}
+
+/* Custom scrollbar untuk tabel di modal */
+#klausulFullscreen ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#klausulFullscreen ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+#klausulFullscreen ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+#klausulFullscreen ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive modal di mobile */
+@media (max-width: 640px) {
+  #klausulFullscreen > div {
+    border-radius: 0;
+    max-height: 100vh;
+  }
+  
+  #klausulFullscreen {
+    padding: 0;
+  }
+}
