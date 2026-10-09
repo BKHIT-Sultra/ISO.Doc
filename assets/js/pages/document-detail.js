@@ -669,16 +669,25 @@ function submitReview() {
   showModal({
     title: 'Ajukan untuk Review',
     content:
-      '<div class="space-y-3">' +
-        '<div>' +
-          '<label class="block text-sm font-semibold text-slate-700 mb-1">Email Reviewer</label>' +
-          '<input id="m-reviewer" type="email" placeholder="reviewer@company.com" ' +
-                 'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                        'focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">' +
+      '<div class="space-y-4">' +
+        // Info box
+        '<div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5">' +
+          '<svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
+          '</svg>' +
+          '<div class="flex-1 text-sm">' +
+            '<div class="font-semibold text-slate-800 mb-0.5">Dokumen akan diajukan untuk review</div>' +
+            '<div class="text-xs text-slate-600">' +
+              'Semua <b>Reviewer</b> dan <b>Admin</b> akan bisa meninjau dan menyetujui dokumen ini.' +
+            '</div>' +
+          '</div>' +
         '</div>' +
+
+        // Catatan
         '<div>' +
           '<label class="block text-sm font-semibold text-slate-700 mb-1">Catatan (opsional)</label>' +
-          '<textarea id="m-catatan" rows="3" placeholder="Catatan untuk reviewer..." ' +
+          '<textarea id="m-catatan" rows="3" ' +
+                    'placeholder="Contoh: Mohon ditinjau bagian 3.2..." ' +
                     'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
                            'focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"></textarea>' +
         '</div>' +
@@ -691,12 +700,13 @@ function submitReview() {
       try {
         await apiPost('submitForReview', {
           doc_id: state.doc.doc_id,
-          reviewer_email: overlay.querySelector('#m-reviewer').value.trim(),
           catatan: overlay.querySelector('#m-catatan').value.trim()
         });
+
         showToast('Dokumen diajukan untuk review', 'success');
         overlay.remove();
         setTimeout(function() { location.reload(); }, 800);
+
       } catch (e) {
         btnReset(confirmBtn);
         showToast(e.message, 'error');
