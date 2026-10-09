@@ -41,21 +41,21 @@ var SUB_JENIS_HINT = {
 };
 
 var KODE_PLACEHOLDER = {
-  'Pedoman':  'PED-01',
-  'Prosedur': 'PRO-9.2-01',
-  'IKK':      'IKK-8.5-03',
-  'Eviden':   'EVD-K3-001',
-  'Formulir': 'FMM-4.5.1-01',
-  'Lampiran': 'LMP-01'
+  'Pedoman':  'PM BKHIT Sultra',
+  'Prosedur': 'P9.2.1.1',
+  'IKK':      'IKK 1',
+  'Eviden':   'E-FMM 1/E-FAP 1/E-FK3 1',
+  'Formulir': 'FMM 1/FAP 1/FK3 1',
+  'Lampiran': 'Lampiran 1'
 };
 
 var KODE_FORMAT_HINT = {
-  'Pedoman':  'Format: PED-NOMOR (contoh: PED-01)',
-  'Prosedur': 'Format: PRO-KLAUSUL-NOMOR (contoh: PRO-9.2-01)',
-  'IKK':      'Format: IKK-KLAUSUL-NOMOR (contoh: IKK-8.5-03)',
-  'Eviden':   'Format: EVD-KODE-NOMOR (contoh: EVD-K3-001)',
-  'Formulir': 'Format: PREFIX-KLAUSUL-NOMOR (contoh: FMM-4.5.1-01)',
-  'Lampiran': 'Format: LMP-NOMOR (contoh: LMP-01)'
+  'Pedoman':  'Format: Pedoman-UPT (contoh: PM BKHIT Sultra)',
+  'Prosedur': 'Format: Prosedur-Kode Kalusul-Nomor urut (contoh: P9.2.1.1)',
+  'IKK':      'Format: IKK-Nomor Urut (contoh: IKK 1)',
+  'Eviden':   'Format: Eviden-Kode Eviden-Nomor Urut (contoh: E-FK3 1)',
+  'Formulir': 'Format: Kode Formulir-Nomor urut (contoh: FMM 1)',
+  'Lampiran': 'Format: Lampiran-Nomor urut (contoh: Lampiran 1)'
 };
 
 function deriveStandar(jenis, subJenis) {
