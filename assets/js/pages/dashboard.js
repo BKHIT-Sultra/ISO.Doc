@@ -304,93 +304,331 @@ function applyKlausulFilter() {
 // ============================================================
 // RENDER TABEL KLAUSUL (ROWS)
 // ============================================================
-function renderKlausulRows(items) {
-  var tbody = document.getElementById('klausulTableBody');
-  if (!tbody) return;
+function renderKlausulTable(items) {
+  klausulData = items || [];
 
-  // ===== Empty state =====
-  if (!items.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="5" class="p-12 text-center">' +
-        '<div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-slate-50 flex items-center justify-center">' +
-          '<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
-          '</svg>' +
-        '</div>' +
-        '<div class="font-semibold text-slate-700 mb-1">Tidak ada klausul yang cocok</div>' +
-        '<div class="text-sm text-slate-500">Coba ubah filter atau kata kunci</div>' +
-      '</td></tr>';
-    return;
+  // Update counter
+  var totalEl = document.getElementById('klausulTotalCount');
+  if (totalEl) totalEl.textContent = klausulData.length;
+
+  // Populate filter bab
+  populateBabFilter(klausulData);
+
+  // Attach event listeners
+  attachKlausulEvents();
+
+  // ★ Attach tombol expand fullscreen
+  var btnExpand = document.getElementById('btnExpandKlausul');
+  if (btnExpand && !btnExpand.dataset.bound) {
+    btnExpand.dataset.bound = '1';
+    btnExpand.addEventListener('click', showKlausulFullscreen);
   }
 
-  // ===== Render rows =====
-  tbody.innerHTML = items.map(function(k) {
-    var hasDocs = k.total_dokumen > 0;
+  // Render tabel
+  applyKlausulFilter();
+}
 
-    // Warna badge count: hijau kalau ada, abu kalau kosong
-    var countCls = hasDocs
-      ? 'bg-green-100 text-green-700 border-green-200'
-      : 'bg-slate-100 text-slate-500 border-slate-200';
+// ============================================================
+// FULLSCREEN MODAL: TABEL KLAUSUL MELAYANG
+// ============================================================
+function showKlausulFullscreen() {
+  // Hapus modal lama kalau ada
+  var existing = document.getElementById('klausulFullscreen');
+  if (existing) existing.remove();
 
-    // Aksi: tombol "Lihat" buka modal (kalau ada dokumen)
-    var actionHtml = hasDocs
-      ? '<button data-klausul-action="' + escapeHtml(k.klausul_id) + '" ' +
-                'class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 ' +
-                       'hover:text-blue-700 hover:bg-blue-50 px-2.5 py-1 rounded-lg transition">' +
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>' +
-          '</svg>' +
-          'Lihat' +
-        '</button>'
-      : '<span class="text-xs text-slate-300">-</span>';
+  // State filter di dalam modal
+  var fsFilters = { q: '', bab: '' };
 
-    return '<tr class="' + (!hasDocs ? 'opacity-60' : '') + '">' +
-
-      // ===== Klausul ID =====
-      '<td>' +
-        '<span class="inline-flex items-center gap-1 font-mono text-xs font-bold ' +
-              'text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-100">' +
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
-          '</svg>' +
-          escapeHtml(k.klausul_id) +
-        '</span>' +
-      '</td>' +
-
-      // ===== Judul Klausul =====
-      '<td>' +
-        '<div class="text-sm font-medium text-slate-700">' +
-          escapeHtml(k.judul_klausul || '-') +
+  // ===== BUILD OVERLAY =====
+  var overlay = document.createElement('div');
+  overlay.id = 'klausulFullscreen';
+  overlay.className = 'fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[9999] ' +
+                      'flex items-center justify-center p-4 lg:p-6';
+  
+  overlay.innerHTML = 
+    // ===== Container putih melayang =====
+    '<div class="bg-white rounded-2xl shadow-2xl w-full h-full max-w-7xl ' +
+                'flex flex-col overflow-hidden border border-slate-200 ' +
+                'animate-[fadeInUp_0.2s_ease-out]">' +
+      
+      // ===== Header =====
+      '<div class="px-6 py-4 border-b border-slate-200 flex items-center ' +
+                  'justify-between gap-4 flex-shrink-0 ' +
+                  'bg-gradient-to-br from-slate-50 to-white">' +
+        
+        '<div class="flex items-center gap-3 min-w-0">' +
+          '<div class="w-11 h-11 rounded-xl bg-indigo-50 flex items-center ' +
+                      'justify-center flex-shrink-0">' +
+            '<svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" ' +
+                 'viewBox="0 0 24 24" stroke-width="2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
+            '</svg>' +
+          '</div>' +
+          '<div class="min-w-0">' +
+            '<h2 class="font-bold text-slate-800 text-lg truncate">Daftar Klausul ISO</h2>' +
+            '<p class="text-xs text-slate-500">' +
+              '<span id="fsKlausulCount">' + klausulData.length + '</span> klausul terdaftar' +
+            '</p>' +
+          '</div>' +
         '</div>' +
-      '</td>' +
+        
+        '<div class="flex items-center gap-2 flex-shrink-0">' +
+          
+          // Search box
+          '<div class="relative hidden md:block">' +
+            '<div class="absolute inset-y-0 left-0 pl-3 flex items-center ' +
+                        'pointer-events-none text-slate-400">' +
+              '<svg class="w-4 h-4" fill="none" stroke="currentColor" ' +
+                   'viewBox="0 0 24 24" stroke-width="2">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                      'd="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>' +
+              '</svg>' +
+            '</div>' +
+            '<input id="fsKlausulSearch" type="text" ' +
+                   'placeholder="Cari klausul..." ' +
+                   'class="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 ' +
+                          'rounded-xl text-sm w-64 focus:outline-none ' +
+                          'focus:border-blue-500 focus:bg-white transition">' +
+          '</div>' +
+          
+          // Filter bab
+          '<select id="fsKlausulFilterBab" ' +
+                  'class="hidden md:block px-3 py-2.5 bg-slate-50 ' +
+                         'border border-slate-200 rounded-xl text-sm ' +
+                         'focus:outline-none focus:border-blue-500 focus:bg-white ' +
+                         'transition cursor-pointer">' +
+            '<option value="">Semua Bab</option>' +
+          '</select>' +
+          
+          // Tombol close
+          '<button id="fsKlausulClose" ' +
+                  'class="w-10 h-10 rounded-xl flex items-center justify-center ' +
+                         'text-slate-500 hover:text-red-600 hover:bg-red-50 transition">' +
+            '<svg class="w-5 h-5" fill="none" stroke="currentColor" ' +
+                 'viewBox="0 0 24 24" stroke-width="2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M6 18L18 6M6 6l12 12"/>' +
+            '</svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+      
+      // ===== Body: Tabel (scrollable) =====
+      '<div class="flex-1 overflow-auto">' +
+        '<table class="w-full">' +
+          '<thead class="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">' +
+            '<tr>' +
+              '<th class="px-6 py-4 text-left text-xs font-bold text-slate-600 ' +
+                    'uppercase tracking-wider w-32">Klausul</th>' +
+              '<th class="px-6 py-4 text-left text-xs font-bold text-slate-600 ' +
+                    'uppercase tracking-wider">Judul Klausul</th>' +
+              '<th class="px-6 py-4 text-left text-xs font-bold text-slate-600 ' +
+                    'uppercase tracking-wider w-48">Bab</th>' +
+              '<th class="px-6 py-4 text-center text-xs font-bold text-slate-600 ' +
+                    'uppercase tracking-wider w-32">Dokumen</th>' +
+              '<th class="px-6 py-4 text-right text-xs font-bold text-slate-600 ' +
+                    'uppercase tracking-wider w-40">Aksi</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody id="fsKlausulBody" class="divide-y divide-slate-100"></tbody>' +
+        '</table>' +
+      '</div>' +
+      
+      // ===== Footer: Info =====
+      '<div class="px-6 py-3 border-t border-slate-100 bg-slate-50 flex items-center ' +
+                  'justify-between text-xs text-slate-500 flex-shrink-0">' +
+        '<span>Tekan <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 ' +
+              'rounded text-[10px] font-mono">ESC</kbd> untuk menutup</span>' +
+        '<span id="fsKlausulFooterInfo"></span>' +
+      '</div>' +
+    '</div>';
 
-      // ===== Bab =====
-      '<td>' +
-        '<span class="text-xs text-slate-500">' +
-          escapeHtml(k.bab || '-') +
-        '</span>' +
-      '</td>' +
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden'; // cegah body scroll
 
-      // ===== Total Dokumen =====
-      '<td class="text-center">' +
-        '<span class="inline-flex items-center justify-center gap-1 min-w-[52px] ' +
-              'text-xs font-bold px-2.5 py-1 rounded-lg border ' + countCls + '">' +
-          (hasDocs
-            ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-                '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' +
-              '</svg>'
-            : '') +
-          k.total_dokumen +
-        '</span>' +
-      '</td>' +
+  // ===== Populate filter bab =====
+  var babs = [];
+  klausulData.forEach(function(k) {
+    if (k.bab && babs.indexOf(k.bab) === -1) babs.push(k.bab);
+  });
+  babs.sort();
+  
+  var babSelect = document.getElementById('fsKlausulFilterBab');
+  if (babSelect) {
+    babs.forEach(function(b) {
+      var opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      babSelect.appendChild(opt);
+    });
+  }
 
-      // ===== Aksi =====
-      '<td class="text-right">' +
-        actionHtml +
-      '</td>' +
+  // ===== Render function =====
+  function renderFS() {
+    var filtered = klausulData.filter(function(k) {
+      if (fsFilters.q) {
+        var hay = (String(k.klausul_id) + ' ' + String(k.judul_klausul || '')).toLowerCase();
+        if (hay.indexOf(fsFilters.q) === -1) return false;
+      }
+      if (fsFilters.bab && k.bab !== fsFilters.bab) return false;
+      return true;
+    });
+    renderFSRows(filtered);
 
-    '</tr>';
-  }).join('');
+    // Update footer info
+    var infoEl = document.getElementById('fsKlausulFooterInfo');
+    if (infoEl) {
+      infoEl.textContent = 'Menampilkan ' + filtered.length + ' dari ' + klausulData.length + ' klausul';
+    }
+  }
+
+  function renderFSRows(items) {
+    var tbody = document.getElementById('fsKlausulBody');
+    if (!tbody) return;
+
+    // Empty state
+    if (!items.length) {
+      tbody.innerHTML = 
+        '<tr><td colspan="5" class="p-16 text-center">' +
+          '<div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-slate-50 flex items-center justify-center">' +
+            '<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" ' +
+                 'viewBox="0 0 24 24" stroke-width="2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>' +
+            '</svg>' +
+          '</div>' +
+          '<div class="font-semibold text-slate-700 mb-1">Tidak ada klausul yang cocok</div>' +
+          '<div class="text-sm text-slate-500">Coba ubah filter atau kata kunci</div>' +
+        '</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = items.map(function(k) {
+      var hasDocs = k.total_dokumen > 0;
+      var countCls = hasDocs
+        ? 'bg-green-100 text-green-700 border-green-200'
+        : 'bg-slate-100 text-slate-500 border-slate-200';
+
+      var actionHtml = hasDocs
+        ? '<button data-fs-klausul="' + escapeHtml(k.klausul_id) + '" ' +
+                  'class="inline-flex items-center gap-1.5 text-xs font-semibold ' +
+                         'text-blue-600 hover:text-blue-700 hover:bg-blue-50 ' +
+                         'px-3 py-1.5 rounded-lg transition">' +
+            '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" ' +
+                 'viewBox="0 0 24 24" stroke-width="2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+              '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'd="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+            '</svg>' +
+            'Lihat Dokumen' +
+          '</button>'
+        : '<span class="text-xs text-slate-300">-</span>';
+
+      return '<tr class="hover:bg-slate-50 transition ' + (!hasDocs ? 'opacity-60' : '') + '">' +
+        
+        // Klausul
+        '<td class="px-6 py-4">' +
+          '<span class="inline-flex items-center gap-1 font-mono text-xs font-bold ' +
+                'text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">' +
+            escapeHtml(k.klausul_id) +
+          '</span>' +
+        '</td>' +
+        
+        // Judul
+        '<td class="px-6 py-4">' +
+          '<div class="text-sm font-medium text-slate-700">' +
+            escapeHtml(k.judul_klausul || '-') +
+          '</div>' +
+        '</td>' +
+        
+        // Bab
+        '<td class="px-6 py-4">' +
+          '<span class="text-xs text-slate-500">' +
+            escapeHtml(k.bab || '-') +
+          '</span>' +
+        '</td>' +
+        
+        // Count
+        '<td class="px-6 py-4 text-center">' +
+          '<span class="inline-flex items-center justify-center gap-1 min-w-[52px] ' +
+                'text-xs font-bold px-2.5 py-1 rounded-lg border ' + countCls + '">' +
+            (hasDocs 
+              ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" ' +
+                     'viewBox="0 0 24 24" stroke-width="2">' +
+                  '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                        'd="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' +
+                '</svg>'
+              : '') +
+            k.total_dokumen +
+          '</span>' +
+        '</td>' +
+        
+        // Aksi
+        '<td class="px-6 py-4 text-right">' + actionHtml + '</td>' +
+      '</tr>';
+    }).join('');
+
+    // Attach event ke tombol "Lihat Dokumen"
+    tbody.querySelectorAll('[data-fs-klausul]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        showKlausulDetail(btn.dataset.fsKlausul);
+      });
+    });
+  }
+
+  // ===== Attach event listener =====
+  document.getElementById('fsKlausulClose').addEventListener('click', closeFS);
+  
+  var searchEl = document.getElementById('fsKlausulSearch');
+  if (searchEl) {
+    searchEl.addEventListener('input', debounce(function(e) {
+      fsFilters.q = e.target.value.trim().toLowerCase();
+      renderFS();
+    }, 250));
+  }
+  
+  if (babSelect) {
+    babSelect.addEventListener('change', function(e) {
+      fsFilters.bab = e.target.value;
+      renderFS();
+    });
+  }
+
+  // Close saat klik overlay luar
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeFS();
+  });
+
+  // Close saat ESC
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeFS();
+      document.removeEventListener('keydown', onKeyDown);
+    }
+  }
+  document.addEventListener('keydown', onKeyDown);
+
+  // Close function
+  function closeFS() {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.15s ease';
+    setTimeout(function() {
+      overlay.remove();
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKeyDown);
+    }, 150);
+  }
+
+  // Auto-focus search
+  setTimeout(function() {
+    if (searchEl) searchEl.focus();
+  }, 200);
+
+  // Render awal
+  renderFS();
+}
 
   // ============================================================
   // ★ ATTACH EVENT LISTENER KE TOMBOL "LIHAT"
