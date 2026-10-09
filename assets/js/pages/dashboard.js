@@ -232,18 +232,19 @@ function renderStatusBreakdown(byStatus) {
 function renderKlausulTable(items) {
   klausulData = items || [];
 
-  // Update counter
   var totalEl = document.getElementById('klausulTotalCount');
   if (totalEl) totalEl.textContent = klausulData.length;
 
-  // Populate filter bab
   populateBabFilter(klausulData);
-
-  // Attach event listeners
   attachKlausulEvents();
-
-  // Render tabel
   applyKlausulFilter();
+
+  // ★ Attach tombol expand
+  var btnExpand = document.getElementById('btnExpandKlausul');
+  if (btnExpand && !btnExpand.dataset.bound) {
+    btnExpand.dataset.bound = '1';
+    btnExpand.addEventListener('click', showKlausulFullscreen);
+  }
 }
 
 function populateBabFilter(items) {
