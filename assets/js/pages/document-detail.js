@@ -182,8 +182,7 @@ function renderContent() {
   html += '      </div>';
 
   html += '      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">';
-  html += infoRow('Klausul ISO', 
-    (d.klausul_utama || '-') + (d.sub_klausul ? ' (' + d.sub_klausul + ')' : ''));
+  html += infoRowHtml('Klausul ISO', renderKlausulBadges(d.sub_klausul || d.klausul_utama));
   html += infoRowHtml('Standar', renderStandarBadges(standarArr));
   html += infoRow('Departemen', d.pemilik_departemen || '-');
   html += infoRow('Pemilik', d.pemilik_email || '-');
@@ -328,6 +327,20 @@ function renderContent() {
   html += '</div>';
 
   el.innerHTML = html;
+}
+
+function renderKlausulBadges(raw) {
+  if (!raw) return '-';
+  var kodes = String(raw).split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+  if (!kodes.length) return '-';
+
+  return kodes.map(function(k) {
+    return '<span class="inline-flex items-center gap-1 text-xs font-semibold ' +
+                  'bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md mr-1 mb-1 ' +
+                  'font-mono">' +
+              escapeHtml(k) +
+            '</span>';
+  }).join('');
 }
 
 // ============================================================
