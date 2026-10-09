@@ -3,7 +3,7 @@
  * ----------------------------
  * - Dropdown toggle via click (bukan hover)
  * - Tombol logout langsung di dropdown
- * - Event handling simpel & predictable
+ * - Fix: overflow-hidden dipindah ke ornamen saja (dropdown bisa keluar)
  */
 import { logout } from '../auth.js';
 
@@ -52,11 +52,11 @@ export function renderNavbar(user) {
   var isDashboard = window.location.pathname.indexOf('dashboard') !== -1;
 
   return `
-    <header class="h-16 border-b border-slate-200/60 relative overflow-hidden" 
+    <header class="h-16 border-b border-slate-200/60 relative" 
             style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); z-index: 100;">
       
-      <!-- Ornamen -->
-      <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <!-- Ornamen (overflow-hidden hanya di sini) -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full opacity-[0.06]"
              style="background: radial-gradient(circle, #2563eb, transparent 70%);"></div>
         <div class="absolute -top-20 left-1/2 w-64 h-64 rounded-full opacity-[0.04] -translate-x-1/2"
