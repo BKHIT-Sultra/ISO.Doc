@@ -1,9 +1,9 @@
 /**
- * Navbar Atas - Premium Version (No Brand Duplication)
- * ----------------------------------------------------
- * Kiri   : Breadcrumb (Home > Page)
- * Tengah : Greeting + Tanggal
- * Kanan  : Role + User Dropdown
+ * Navbar Atas - Robust Version
+ * ----------------------------
+ * - Dropdown toggle via click (bukan hover)
+ * - Tombol logout langsung di dropdown
+ * - Event handling simpel & predictable
  */
 import { logout } from '../auth.js';
 
@@ -21,18 +21,12 @@ var PAGE_MAP = {
   'users':            { title: 'Pengguna',         icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }
 };
 
-// ============================================================
-// DETECT HALAMAN AKTIF
-// ============================================================
 function getCurrentPage() {
   var path = window.location.pathname;
   var file = path.substring(path.lastIndexOf('/') + 1).replace('.html', '');
   return PAGE_MAP[file] || { title: 'Halaman', icon: 'M9 12h6m-6 4h6' };
 }
 
-// ============================================================
-// GREETING BERDASARKAN JAM
-// ============================================================
 function getGreeting() {
   var jam = new Date().getHours();
   if (jam < 11) return 'Selamat pagi';
@@ -41,9 +35,6 @@ function getGreeting() {
   return 'Selamat malam';
 }
 
-// ============================================================
-// TANGGAL FORMAT INDONESIA
-// ============================================================
 function getDateStr() {
   var d = new Date();
   var hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][d.getDay()];
@@ -62,9 +53,9 @@ export function renderNavbar(user) {
 
   return `
     <header class="h-16 border-b border-slate-200/60 relative overflow-hidden" 
-            style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);">
+            style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); z-index: 100;">
       
-      <!-- ===== ORNAMEN SUBTLE ===== -->
+      <!-- Ornamen -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full opacity-[0.06]"
              style="background: radial-gradient(circle, #2563eb, transparent 70%);"></div>
@@ -74,13 +65,11 @@ export function renderNavbar(user) {
              style="background: radial-gradient(circle, #8b5cf6, transparent 70%);"></div>
       </div>
 
-      <!-- ===== KONTEN ===== -->
+      <!-- Konten -->
       <div class="relative flex items-center justify-between px-4 lg:px-6 h-full gap-4">
         
-        <!-- ============ KIRI: Hamburger + Breadcrumb ============ -->
+        <!-- KIRI: Hamburger + Breadcrumb -->
         <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
-          
-          <!-- Hamburger (mobile) -->
           <button id="toggleSidebar" 
                   class="lg:hidden w-10 h-10 flex items-center justify-center 
                          text-slate-600 hover:text-blue-600 hover:bg-slate-100 
@@ -90,10 +79,7 @@ export function renderNavbar(user) {
             </svg>
           </button>
 
-          <!-- Breadcrumb -->
           <nav class="flex items-center gap-2 min-w-0">
-            
-            <!-- Home icon (kalau bukan dashboard) -->
             ${!isDashboard ? `
               <a href="dashboard.html" 
                  class="flex items-center justify-center w-8 h-8 rounded-lg 
@@ -105,47 +91,35 @@ export function renderNavbar(user) {
                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
               </a>
-              
-              <!-- Separator -->
               <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" 
                    fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
               </svg>
             ` : ''}
             
-            <!-- Page Title -->
             <div class="min-w-0 flex items-center gap-2">
-              <!-- Ikon kecil (bukan kotak gradient) -->
               <svg class="w-4 h-4 text-blue-600 flex-shrink-0" 
                    fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="${page.icon}"/>
               </svg>
-              
-              <h1 class="text-base font-bold text-slate-800 truncate">
-                ${page.title}
-              </h1>
+              <h1 class="text-base font-bold text-slate-800 truncate">${page.title}</h1>
             </div>
           </nav>
         </div>
 
-        <!-- ============ TENGAH: Greeting (hidden mobile) ============ -->
+        <!-- TENGAH: Greeting -->
         <div class="hidden md:flex items-center gap-3 flex-1 justify-center min-w-0">
-          
           <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
-          
           <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50/80 border border-slate-100">
             <span class="relative flex h-2 w-2 flex-shrink-0">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            
             <span class="text-sm text-slate-700 truncate">
               <span class="font-semibold">${greeting},</span>
               <span class="text-slate-500">${firstName}</span>
             </span>
-            
             <span class="text-slate-300 hidden lg:inline">&middot;</span>
-            
             <span class="text-xs text-slate-500 hidden lg:inline-flex items-center gap-1.5">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -153,11 +127,10 @@ export function renderNavbar(user) {
               ${getDateStr()}
             </span>
           </div>
-
           <div class="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
         </div>
 
-        <!-- ============ KANAN: Role + User ============ -->
+        <!-- KANAN: Role + User Dropdown -->
         <div class="flex items-center gap-2 flex-shrink-0">
           
           <span class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 
@@ -188,11 +161,15 @@ export function renderNavbar(user) {
               </svg>
             </button>
 
+            <!-- Dropdown -->
             <div id="userMenuDropdown"
-                 class="hidden absolute right-0 top-full mt-2 bg-white border border-slate-200 
-                        rounded-2xl min-w-[260px] z-[100] overflow-hidden"
-                 style="box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.25);">
-              <div class="p-4 border-b border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+                 class="hidden absolute right-0 top-full mt-2 bg-white 
+                        border-2 border-slate-200 rounded-2xl min-w-[280px] 
+                        overflow-hidden"
+                 style="z-index: 9999; box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.35);">
+              
+              <!-- User info -->
+              <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-slate-200">
                 <div class="flex items-center gap-3">
                   <div class="w-12 h-12 rounded-xl flex items-center justify-center 
                               text-white font-bold text-lg shadow-lg"
@@ -202,23 +179,25 @@ export function renderNavbar(user) {
                   <div class="flex-1 min-w-0">
                     <div class="font-semibold text-slate-800 truncate">${user.nama}</div>
                     <div class="text-xs text-slate-500 truncate">${user.email}</div>
-                    <span class="inline-block mt-1 text-xs px-2 py-0.5 rounded 
-                                 bg-blue-100 text-blue-700 font-semibold">
-                      ${user.role}
-                    </span>
                   </div>
                 </div>
+                <span class="inline-block mt-2 text-xs px-2 py-1 rounded-lg 
+                             bg-blue-100 text-blue-700 font-semibold">
+                  ${user.role}
+                </span>
               </div>
+              
+              <!-- Menu -->
               <div class="p-2">
-                <button id="btnLogout"
-                        class="w-full text-left px-3 py-2.5 text-sm text-red-600 
+                <button id="btnLogout" type="button"
+                        class="w-full text-left px-4 py-3 text-sm text-red-600 
                                hover:bg-red-50 rounded-xl transition flex items-center gap-3 
-                               font-medium">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                               font-semibold">
+                  <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" 
                           d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                   </svg>
-                  Logout
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
@@ -233,47 +212,70 @@ export function renderNavbar(user) {
 // ATTACH EVENTS
 // ============================================================
 export function attachNavbarEvents() {
+  console.log('[navbar] Attaching events...');
+
   var wrapper = document.getElementById('userMenuWrapper');
   var btn = document.getElementById('userMenuBtn');
   var dropdown = document.getElementById('userMenuDropdown');
 
-  if (btn && dropdown && wrapper) {
-    var hideTimer = null;
+  console.log('[navbar] wrapper:', !!wrapper, '| btn:', !!btn, '| dropdown:', !!dropdown);
 
-    var showDropdown = function() {
-      clearTimeout(hideTimer);
-      dropdown.classList.remove('hidden');
-    };
-
-    var hideDropdown = function() {
-      hideTimer = setTimeout(function() {
-        dropdown.classList.add('hidden');
-      }, 250);
-    };
-
-    wrapper.addEventListener('mouseenter', showDropdown);
-    wrapper.addEventListener('mouseleave', hideDropdown);
-
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!wrapper.contains(e.target)) {
-        dropdown.classList.add('hidden');
-      }
-    });
+  if (!wrapper || !btn || !dropdown) {
+    console.error('[navbar] Element tidak lengkap!');
+    return;
   }
 
-  var logoutBtn = document.getElementById('btnLogout');
-  if (logoutBtn) logoutBtn.onclick = logout;
+  // Toggle dropdown saat klik tombol user
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var isHidden = dropdown.classList.contains('hidden');
+    if (isHidden) {
+      dropdown.classList.remove('hidden');
+      console.log('[navbar] Dropdown OPEN');
+    } else {
+      dropdown.classList.add('hidden');
+      console.log('[navbar] Dropdown CLOSE');
+    }
+  });
 
+  // Close saat klik di luar
+  document.addEventListener('click', function(e) {
+    if (!wrapper.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Close saat ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // ★ LOGOUT BUTTON
+  var logoutBtn = document.getElementById('btnLogout');
+  console.log('[navbar] Logout button:', !!logoutBtn);
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[navbar] Logout clicked!');
+      logout();
+    });
+  } else {
+    console.error('[navbar] btnLogout TIDAK DITEMUKAN!');
+  }
+
+  // Toggle sidebar mobile
   var toggle = document.getElementById('toggleSidebar');
   if (toggle) {
-    toggle.onclick = function() {
+    toggle.addEventListener('click', function() {
       var sb = document.getElementById('sidebar');
       if (sb) sb.classList.toggle('hidden');
-    };
+    });
   }
+
+  console.log('[navbar] Events attached ✅');
 }
