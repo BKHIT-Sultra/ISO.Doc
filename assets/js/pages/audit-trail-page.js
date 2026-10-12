@@ -109,7 +109,7 @@ function setupFilters() {
 
   if (fEmail) {
     fEmail.addEventListener('input', debounce(function(e) {
-      state.filters.user_email = e.target.value.trim();
+      state.filters.filter_user_email = e.target.value.trim();    // ← BENAR
       state.page = 1;
       loadLogs();
     }, 500));
