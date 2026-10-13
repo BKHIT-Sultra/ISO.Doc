@@ -1,9 +1,11 @@
 /**
  * Navbar Atas - Robust Version
  * ----------------------------
- * - Dropdown toggle via click (bukan hover)
- * - Tombol logout langsung di dropdown
- * - Fix: overflow-hidden dipindah ke ornamen saja (dropdown bisa keluar)
+ * - Dropdown toggle via click
+ * - Tombol logout di dropdown
+ * - Breadcrumb + Page Title
+ * - Ornamen gradient subtle
+ * - PAGE_MAP untuk auto-detect judul & ikon halaman
  */
 import { logout } from '../auth.js';
 
@@ -11,22 +13,63 @@ import { logout } from '../auth.js';
 // KONFIGURASI HALAMAN
 // ============================================================
 var PAGE_MAP = {
-  'dashboard':        { title: 'Dashboard',        icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  'documents':        { title: 'Dokumen',          icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-  'document-detail':  { title: 'Detail Dokumen',   icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-  'upload':           { title: 'Upload Dokumen',   icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' },
-  'approval':         { title: 'Approval',         icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-  'review-reminder':  { title: 'Reminder Review',  icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-  'audit-trail':      { title: 'Audit Trail',      icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2' },
-  'users':            { title: 'Pengguna',         icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }
+  'dashboard':        { 
+    title: 'Dashboard',        
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' 
+  },
+  'documents':        { 
+    title: 'Dokumen',          
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' 
+  },
+  'document-detail':  { 
+    title: 'Detail Dokumen',   
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' 
+  },
+  'upload':           { 
+    title: 'Upload Dokumen',   
+    icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' 
+  },
+  'approval':         { 
+    title: 'Approval',         
+    icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' 
+  },
+  'review-reminder':  { 
+    title: 'Reminder Review',  
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' 
+  },
+  'audit-trail':      { 
+    title: 'Audit Trail',      
+    icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2' 
+  },
+  'audits':           { 
+    title: 'Hasil Audit',      
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' 
+  },
+  'audit-detail':     { 
+    title: 'Detail Audit',     
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' 
+  },
+  'users':            { 
+    title: 'Pengguna',         
+    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' 
+  }
 };
 
+// ============================================================
+// DETEKSI HALAMAN AKTIF
+// ============================================================
 function getCurrentPage() {
   var path = window.location.pathname;
   var file = path.substring(path.lastIndexOf('/') + 1).replace('.html', '');
-  return PAGE_MAP[file] || { title: 'Halaman', icon: 'M9 12h6m-6 4h6' };
+  return PAGE_MAP[file] || { 
+    title: 'Halaman', 
+    icon: 'M9 12h6m-6 4h6' 
+  };
 }
 
+// ============================================================
+// GREETING BERDASARKAN JAM
+// ============================================================
 function getGreeting() {
   var jam = new Date().getHours();
   if (jam < 11) return 'Selamat pagi';
@@ -35,6 +78,9 @@ function getGreeting() {
   return 'Selamat malam';
 }
 
+// ============================================================
+// TANGGAL FORMAT INDONESIA
+// ============================================================
 function getDateStr() {
   var d = new Date();
   var hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][d.getDay()];
@@ -168,7 +214,6 @@ export function renderNavbar(user) {
                         overflow-hidden"
                  style="z-index: 9999; box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.35);">
               
-              <!-- User info -->
               <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-slate-200">
                 <div class="flex items-center gap-3">
                   <div class="w-12 h-12 rounded-xl flex items-center justify-center 
@@ -187,7 +232,6 @@ export function renderNavbar(user) {
                 </span>
               </div>
               
-              <!-- Menu -->
               <div class="p-2">
                 <button id="btnLogout" type="button"
                         class="w-full text-left px-4 py-3 text-sm text-red-600 
@@ -253,7 +297,7 @@ export function attachNavbarEvents() {
     }
   });
 
-  // ★ LOGOUT BUTTON
+  // LOGOUT BUTTON
   var logoutBtn = document.getElementById('btnLogout');
   console.log('[navbar] Logout button:', !!logoutBtn);
   
