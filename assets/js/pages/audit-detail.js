@@ -29,6 +29,7 @@ var state = {
 };
 
 var usersList = [];
+var klausulList = [];   // ← TAMBAH INI
 
 // ============================================================
 // CONSTANTS
@@ -82,6 +83,7 @@ function initPage() {
   // Load data parallel
   Promise.all([
     loadUsersList(),
+    loadKlausulList(),    // ← TAMBAH
     loadAuditDetail()
   ]).then(function() {
     setupEvents();
@@ -106,6 +108,41 @@ async function loadUsersList() {
     console.warn('[audit-detail] Gagal load users:', e);
     usersList = [];
   }
+}
+
+// ============================================================
+// LOAD KLAUSUL MASTER (untuk dropdown)
+// ============================================================
+async function loadKlausulList() {
+  try {
+    var data = await apiGet('getKlausul');
+    klausulList = data || [];
+    // Sort numeric (4.1 < 4.5 < 4.5.1 < 9.2)
+    klausulList.sort(function(a, b) {
+      return String(a.klausul_id || '').localeCompare(
+        String(b.klausul_id || ''), undefined, { numeric: true }
+      );
+    });
+    console.log('[audit-detail] Klausul loaded:', klausulList.length);
+  } catch (e) {
+    console.warn('[audit-detail] Gagal load klausul:', e);
+    klausulList = [];
+  }
+}
+
+/**
+ * Build options untuk dropdown klausul
+ */
+function buildKlausulOptions(selected) {
+  var options = '<option value="">-- Pilih Klausul --</option>';
+  klausulList.forEach(function(k) {
+    var val = k.klausul_id;
+    var isSelected = (selected === val) ? ' selected' : '';
+    options += '<option value="' + escapeHtml(val) + '"' + isSelected + '>' +
+               escapeHtml(k.klausul_id) + ' - ' + escapeHtml(k.judul_klausul || '') +
+               '</option>';
+  });
+  return options;
 }
 
 // ============================================================
@@ -528,10 +565,10 @@ function showTemuanModal(existing) {
           '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
             'Klausul ISO' +
           '</label>' +
-          '<input id="mt-klausul" type="text" value="' + escapeHtml(t.klausul || '') + '" ' +
-                 'placeholder="Contoh: 8.5.1" ' +
-                 'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl font-mono ' +
-                        'focus:outline-none focus:border-blue-500">' +
+          '<select id="mt-klausul" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
+                  'focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">' +
+            buildKlausulOptions(t.klausul) +
+          '</select>' +
         '</div>' +
         '<div>' +
           '<label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Temuan</label>' +
