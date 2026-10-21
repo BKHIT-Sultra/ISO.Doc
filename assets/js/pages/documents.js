@@ -117,6 +117,20 @@ export async function initDocuments(user) {
 
     loadDocuments();
   });
+
+  // ★ BARU: Event listener untuk ganti jumlah per halaman
+  const selectLimit = document.getElementById('selectLimit');
+  if (selectLimit) {
+    // Set nilai awal sesuai state
+    selectLimit.value = String(state.limit);
+    
+    selectLimit.addEventListener('change', function(e) {
+      state.limit = Number(e.target.value);
+      state.page = 1; // Reset ke halaman 1 setiap ganti limit
+      console.log('[documents] Limit berubah menjadi:', state.limit);
+      loadDocuments();
+    });
+  }
 }
 
 // ============================================================
