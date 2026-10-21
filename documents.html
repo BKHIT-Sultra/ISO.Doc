@@ -164,28 +164,46 @@
       <!-- ============================================== -->
       <!-- TABEL DOKUMEN                                  -->
       <!-- ============================================== -->
-      <div class="card-premium !p-0 overflow-hidden fade-in-up fade-in-up-3">
-        
-        <div class="overflow-x-auto">
-          <table class="table-premium">
-            <thead>
-              <tr>
-                <th>Kode</th>
-                <th>Judul</th>
-                <th>Jenis Dokumen</th>
-                <th class="text-center">Versi</th>
-                <th>Status</th>
-                <th>Terbit</th>
-                <th class="text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="docTableBody"></tbody>
-          </table>
-        </div>
+        <div class="card-premium !p-0 overflow-hidden fade-in-up fade-in-up-3">
+          <div class="overflow-x-auto">
+            <table class="table-premium">
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Judul</th>
+                  <th>Jenis Dokumen</th>
+                  <th class="text-center">Versi</th>
+                  <th>Status</th>
+                  <th>Terbit</th>
+                  <th class="text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="docTableBody"></tbody>
+            </table>
+          </div>
+          
+          <!-- Footer Tabel (Limit + Pagination) -->
+          <div class="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- Pilihan Jumlah per Halaman -->
+            <div class="flex items-center gap-2 text-sm text-slate-500">
+              <span>Tampilkan</span>
+              <select id="selectLimit" 
+                      class="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg 
+                             text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span>dokumen</span>
+            </div>
 
-        <div id="pagination" 
-             class="px-6 py-4 border-t border-slate-100 flex justify-center flex-wrap gap-2"></div>
-      </div>
+            <!-- Pagination -->
+            <div id="pagination" class="flex justify-center flex-wrap gap-2"></div>
+            
+          </div>
+        </div>
 
     </main>
   </div>
