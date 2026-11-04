@@ -25,6 +25,7 @@ var state = {
   audit: null,
   temuan: [],
   filtered: [],
+  lampiran: [],                                    // ← baru
   filters: { q: '', jenis: '', status: '' }
 };
 
@@ -84,7 +85,8 @@ function initPage() {
   Promise.all([
     loadUsersList(),
     loadKlausulList(),    // ← TAMBAH
-    loadAuditDetail()
+    loadAuditDetail(),
+    loadLampiran()            // ← tambahkan
   ]).then(function() {
     setupEvents();
   });
@@ -318,6 +320,9 @@ function setupEvents() {
       showTemuanModal(null);
     });
   }
+
+  var btnUpload = document.getElementById('btnUploadFile');
+  if (btnUpload) btnUpload.addEventListener('click', showUploadModal);
 
   // Filter
   var fSearch = document.getElementById('fTemuanSearch');
@@ -928,4 +933,205 @@ function showAuditEditModal() {
       }
     }
   });
+}
+
+// ============================================================
+// LAMPIRAN — LOAD & RENDER
+// ============================================================
+async function loadLampiran() {
+  try {
+    var data = await apiGet('getAuditFiles', { audit_id: state.auditId });
+    state.lampiran = data || [];
+  } catch (e) {
+    console.warn('[audit-detail] Gagal load lampiran:', e);
+    state.lampiran = [];
+  }
+  renderLampiranList();
+  var el = document.getElementById('lampiranCount');
+  if (el) el.textContent = state.lampiran.length;
+}
+
+function getFileIcon(ext) {
+  var map = {
+    pdf:  { bg: 'bg-red-100',     color: 'text-red-600',     path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+    doc:  { bg: 'bg-blue-100',    color: 'text-blue-600',    path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+    docx: { bg: 'bg-blue-100',    color: 'text-blue-600',    path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+    xls:  { bg: 'bg-emerald-100', color: 'text-emerald-600', path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+    xlsx: { bg: 'bg-emerald-100', color: 'text-emerald-600', path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+    jpg:  { bg: 'bg-purple-100',  color: 'text-purple-600',  path: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    jpeg: { bg: 'bg-purple-100',  color: 'text-purple-600',  path: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    png:  { bg: 'bg-purple-100',  color: 'text-purple-600',  path: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' }
+  };
+  return map[ext] || { bg: 'bg-slate-100', color: 'text-slate-600', path: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' };
+}
+
+function formatFileSize(bytes) {
+  var b = Number(bytes);
+  if (!b || b <= 0) return '-';
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function renderLampiranList() {
+  var list = document.getElementById('lampiranList');
+  if (!list) return;
+
+  if (!state.lampiran.length) {
+    list.innerHTML =
+      '<div class="text-center py-8">' +
+        '<div class="w-14 h-14 mx-auto mb-2 rounded-2xl bg-slate-50 flex items-center justify-center">' +
+          '<svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>' +
+          '</svg>' +
+        '</div>' +
+        '<div class="text-sm text-slate-500">Belum ada file lampiran</div>' +
+        '<div class="text-xs text-slate-400 mt-1">Klik "Upload File" untuk menambahkan dokumen hasil audit</div>' +
+      '</div>';
+    return;
+  }
+
+  var canDelete = state.user && (state.user.role === 'Admin' || state.user.role === 'Reviewer');
+
+  list.innerHTML = state.lampiran.map(function(f) {
+    var ext = String(f.nama_file || '').split('.').pop().toLowerCase();
+    var icon = getFileIcon(ext);
+    var size = formatFileSize(f.ukuran);
+
+    return '<div class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 transition">' +
+      '<div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + icon.bg + '">' +
+        '<svg class="w-5 h-5 ' + icon.color + '" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="' + icon.path + '"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="flex-1 min-w-0">' +
+        '<div class="font-semibold text-sm text-slate-800 truncate">' + escapeHtml(f.nama_file) + '</div>' +
+        '<div class="text-xs text-slate-500">' + size + ' · ' + escapeHtml(f.uploaded_by || '-') + '</div>' +
+      '</div>' +
+      '<div class="flex items-center gap-1 flex-shrink-0">' +
+        '<a href="' + escapeHtml(f.drive_url) + '" target="_blank" ' +
+           'class="inline-flex items-center text-xs font-semibold text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition" title="Lihat">' +
+          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+          '</svg>' +
+        '</a>' +
+        '<a href="https://drive.google.com/uc?export=download&id=' + escapeHtml(f.drive_file_id) + '" ' +
+           'class="inline-flex items-center text-xs font-semibold text-slate-600 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition" title="Download">' +
+          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>' +
+          '</svg>' +
+        '</a>' +
+        (canDelete ?
+          '<button data-action="delete-file" data-id="' + escapeHtml(f.file_id) + '" ' +
+                  'class="inline-flex items-center text-xs font-semibold text-red-500 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition" title="Hapus">' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>' +
+            '</svg>' +
+          '</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  list.querySelectorAll('[data-action="delete-file"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var f = state.lampiran.find(function(x) { return x.file_id === btn.dataset.id; });
+      if (f) deleteLampiran(f);
+    });
+  });
+}
+
+// ============================================================
+// LAMPIRAN — UPLOAD MODAL
+// ============================================================
+function showUploadModal() {
+  var content =
+    '<div class="space-y-3">' +
+      '<div>' +
+        '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
+          'Pilih File <span class="text-red-500">*</span>' +
+        '</label>' +
+        '<div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-400 hover:bg-blue-50/30 transition cursor-pointer">' +
+          '<input id="mu-file" type="file" class="absolute inset-0 opacity-0 cursor-pointer" ' +
+                 'onchange="var f=this.files[0]; if(f){document.getElementById(\'mu-filename\').textContent=f.name; document.getElementById(\'mu-filesize\').textContent=(f.size/1024/1024).toFixed(2)+\' MB\';}" />' +
+          '<svg class="w-10 h-10 mx-auto text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.755-7.966 6 6 0 0111.51 0A4 4 0 0117 16m-5-4v8m0 0l-3-3m3 3l3-3"/>' +
+          '</svg>' +
+          '<div class="text-sm font-semibold text-slate-700">Klik untuk pilih file</div>' +
+          '<div class="text-xs text-slate-500 mt-1">PDF, Word, Excel, Gambar · max 15 MB</div>' +
+        '</div>' +
+        '<div class="mt-2 text-xs flex items-center justify-between gap-2">' +
+          '<span id="mu-filename" class="font-medium text-slate-700 truncate">Belum ada file dipilih</span>' +
+          '<span id="mu-filesize" class="text-slate-400 flex-shrink-0"></span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  showModal({
+    title: 'Upload Lampiran Hasil Audit',
+    content: content,
+    confirmText: 'Upload',
+    onConfirm: async function(overlay) {
+      var confirmBtn = overlay.querySelector('[data-confirm]');
+      var input = overlay.querySelector('#mu-file');
+      var file = input && input.files && input.files[0];
+
+      if (!file) {
+        showToast('Pilih file terlebih dahulu', 'warning');
+        return;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        showToast('Ukuran file melebihi 15 MB', 'warning');
+        return;
+      }
+
+      btnLoading(confirmBtn, 'Mengupload...');
+
+      try {
+        var base64 = await fileToBase64(file);
+        await apiPost('uploadAuditFile', {
+          audit_id: state.auditId,
+          file_name: file.name,
+          mime_type: file.type,
+          file_base64: base64
+        });
+        showToast('File berhasil diupload', 'success');
+        overlay.remove();
+        setTimeout(loadLampiran, 500);
+      } catch (e) {
+        console.error('[audit-detail] Upload error:', e);
+        btnReset(confirmBtn);
+        showToast(e.message || 'Gagal upload file', 'error');
+      }
+    }
+  });
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      var result = String(reader.result || '');
+      var idx = result.indexOf(',');
+      resolve(idx >= 0 ? result.substring(idx + 1) : result);
+    };
+    reader.onerror = function() { reject(new Error('Gagal membaca file')); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteLampiran(f) {
+  confirmDialog(
+    'Hapus file <b>' + escapeHtml(f.nama_file) + '</b>?',
+    async function() {
+      try {
+        await apiPost('deleteAuditFile', { file_id: f.file_id });
+        showToast('File dihapus', 'success');
+        setTimeout(loadLampiran, 500);
+      } catch (e) {
+        showToast(e.message || 'Gagal menghapus file', 'error');
+      }
+    },
+    { confirmText: 'Hapus', title: 'Konfirmasi Hapus' }
+  );
 }
