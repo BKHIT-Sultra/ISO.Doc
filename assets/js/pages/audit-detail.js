@@ -6,6 +6,7 @@
  * - Modal tambah/edit temuan (dropdown PIC)
  * - Modal update progress perbaikan (dropdown Verifikator)
  * - Filter temuan (search, jenis, status)
+ * - Lampiran Hasil Audit (upload via edit modal, list, download, delete)
  */
 import { requireAuth } from '../auth.js';
 import { renderNavbar, attachNavbarEvents } from '../components/navbar.js';
@@ -25,12 +26,12 @@ var state = {
   audit: null,
   temuan: [],
   filtered: [],
-  lampiran: [],                                    // ← baru
+  lampiran: [], // ← State untuk lampiran
   filters: { q: '', jenis: '', status: '' }
 };
 
 var usersList = [];
-var klausulList = [];   // ← TAMBAH INI
+var klausulList = [];
 
 // ============================================================
 // CONSTANTS
@@ -84,9 +85,9 @@ function initPage() {
   // Load data parallel
   Promise.all([
     loadUsersList(),
-    loadKlausulList(),    // ← TAMBAH
+    loadKlausulList(),
     loadAuditDetail(),
-    loadLampiran()            // ← tambahkan
+    loadLampiran() // ← Load lampiran
   ]).then(function() {
     setupEvents();
   });
@@ -181,6 +182,8 @@ function showError(msg) {
   document.getElementById('loadingState').classList.add('hidden');
   document.getElementById('contentState').classList.add('hidden');
   var errEl = document.getElementById('errorState');
+  if (!errEl) return;
+  
   errEl.classList.remove('hidden');
   errEl.innerHTML =
     '<div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">' +
@@ -320,9 +323,6 @@ function setupEvents() {
       showTemuanModal(null);
     });
   }
-
-  var btnUpload = document.getElementById('btnUploadFile');
-  if (btnUpload) btnUpload.addEventListener('click', showUploadModal);
 
   // Filter
   var fSearch = document.getElementById('fTemuanSearch');
@@ -833,7 +833,7 @@ function deleteTemuan(t) {
 }
 
 // ============================================================
-// EDIT AUDIT MODAL
+// EDIT AUDIT MODAL (Termasuk Upload File)
 // ============================================================
 function showAuditEditModal() {
   var a = state.audit;
@@ -895,6 +895,14 @@ function showAuditEditModal() {
           escapeHtml(a.keterangan || '') +
         '</textarea>' +
       '</div>' +
+
+      // Input File Upload
+      '<div class="pt-3 border-t border-slate-100">' +
+        '<label class="block text-sm font-semibold text-slate-700 mb-1">Tambah Lampiran Baru</label>' +
+        '<input id="ae-files" type="file" multiple ' +
+               'class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>' +
+        '<div class="text-xs text-slate-500 mt-1">Bisa pilih lebih dari 1 file. File lama tidak akan terhapus.</div>' +
+      '</div>' +
     '</div>';
 
   showModal({
@@ -923,11 +931,35 @@ function showAuditEditModal() {
       btnLoading(confirmBtn, 'Menyimpan...');
 
       try {
+        // 1. Update data audit
         await apiPost('updateAudit', payload);
+        
+        // 2. Upload file jika ada
+        var fileInput = overlay.querySelector('#ae-files');
+        if (fileInput && fileInput.files.length > 0) {
+          for (var i = 0; i < fileInput.files.length; i++) {
+            var file = fileInput.files[i];
+            var base64 = await fileToBase64(file);
+            await apiPost('uploadAuditFile', {
+              audit_id: a.audit_id,
+              file_name: file.name,
+              mime_type: file.type,
+              file_base64: base64
+            });
+          }
+        }
+
         showToast('Audit berhasil diupdate', 'success');
         overlay.remove();
-        setTimeout(function() { loadAuditDetail(); }, 500);
+        
+        // Reload detail & lampiran
+        setTimeout(function() { 
+          loadAuditDetail(); 
+          loadLampiran();
+        }, 500);
+
       } catch (e) {
+        console.error('[audit-detail] Save error:', e);
         btnReset(confirmBtn);
         showToast(e.message || 'Gagal menyimpan', 'error');
       }
@@ -986,7 +1018,7 @@ function renderLampiranList() {
           '</svg>' +
         '</div>' +
         '<div class="text-sm text-slate-500">Belum ada file lampiran</div>' +
-        '<div class="text-xs text-slate-400 mt-1">Klik "Upload File" untuk menambahkan dokumen hasil audit</div>' +
+        '<div class="text-xs text-slate-400 mt-1">Klik "Edit Audit" untuk menambahkan dokumen hasil audit</div>' +
       '</div>';
     return;
   }
@@ -1041,85 +1073,6 @@ function renderLampiranList() {
   });
 }
 
-// ============================================================
-// LAMPIRAN — UPLOAD MODAL
-// ============================================================
-function showUploadModal() {
-  var content =
-    '<div class="space-y-3">' +
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-          'Pilih File <span class="text-red-500">*</span>' +
-        '</label>' +
-        '<div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-400 hover:bg-blue-50/30 transition cursor-pointer">' +
-          '<input id="mu-file" type="file" class="absolute inset-0 opacity-0 cursor-pointer" ' +
-                 'onchange="var f=this.files[0]; if(f){document.getElementById(\'mu-filename\').textContent=f.name; document.getElementById(\'mu-filesize\').textContent=(f.size/1024/1024).toFixed(2)+\' MB\';}" />' +
-          '<svg class="w-10 h-10 mx-auto text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.755-7.966 6 6 0 0111.51 0A4 4 0 0117 16m-5-4v8m0 0l-3-3m3 3l3-3"/>' +
-          '</svg>' +
-          '<div class="text-sm font-semibold text-slate-700">Klik untuk pilih file</div>' +
-          '<div class="text-xs text-slate-500 mt-1">PDF, Word, Excel, Gambar · max 15 MB</div>' +
-        '</div>' +
-        '<div class="mt-2 text-xs flex items-center justify-between gap-2">' +
-          '<span id="mu-filename" class="font-medium text-slate-700 truncate">Belum ada file dipilih</span>' +
-          '<span id="mu-filesize" class="text-slate-400 flex-shrink-0"></span>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  showModal({
-    title: 'Upload Lampiran Hasil Audit',
-    content: content,
-    confirmText: 'Upload',
-    onConfirm: async function(overlay) {
-      var confirmBtn = overlay.querySelector('[data-confirm]');
-      var input = overlay.querySelector('#mu-file');
-      var file = input && input.files && input.files[0];
-
-      if (!file) {
-        showToast('Pilih file terlebih dahulu', 'warning');
-        return;
-      }
-      if (file.size > 15 * 1024 * 1024) {
-        showToast('Ukuran file melebihi 15 MB', 'warning');
-        return;
-      }
-
-      btnLoading(confirmBtn, 'Mengupload...');
-
-      try {
-        var base64 = await fileToBase64(file);
-        await apiPost('uploadAuditFile', {
-          audit_id: state.auditId,
-          file_name: file.name,
-          mime_type: file.type,
-          file_base64: base64
-        });
-        showToast('File berhasil diupload', 'success');
-        overlay.remove();
-        setTimeout(loadLampiran, 500);
-      } catch (e) {
-        console.error('[audit-detail] Upload error:', e);
-        btnReset(confirmBtn);
-        showToast(e.message || 'Gagal upload file', 'error');
-      }
-    }
-  });
-}
-
-function fileToBase64(file) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function() {
-      var result = String(reader.result || '');
-      var idx = result.indexOf(',');
-      resolve(idx >= 0 ? result.substring(idx + 1) : result);
-    };
-    reader.onerror = function() { reject(new Error('Gagal membaca file')); };
-    reader.readAsDataURL(file);
-  });
-}
-
 function deleteLampiran(f) {
   confirmDialog(
     'Hapus file <b>' + escapeHtml(f.nama_file) + '</b>?',
@@ -1134,4 +1087,20 @@ function deleteLampiran(f) {
     },
     { confirmText: 'Hapus', title: 'Konfirmasi Hapus' }
   );
+}
+
+// ============================================================
+// HELPER: FILE TO BASE64
+// ============================================================
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      var result = String(reader.result || '');
+      var idx = result.indexOf(',');
+      resolve(idx >= 0 ? result.substring(idx + 1) : result);
+    };
+    reader.onerror = function() { reject(new Error('Gagal membaca file')); };
+    reader.readAsDataURL(file);
+  });
 }
