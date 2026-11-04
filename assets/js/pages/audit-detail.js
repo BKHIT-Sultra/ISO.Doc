@@ -437,19 +437,44 @@ function renderTemuanList() {
           '</div>' +
         '</div>' +
 
-        // Rekomendasi
-        (t.rekomendasi ?
-          '<div class="mb-3 bg-blue-50 border-l-2 border-blue-400 rounded-r-lg p-2.5">' +
-            '<div class="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-0.5">Rekomendasi</div>' +
-            '<div class="text-xs text-slate-700 italic">' + escapeHtml(t.rekomendasi) + '</div>' +
-          '</div>' : '') +
-
-        // Tindakan (kalau ada)
-        (t.tindakan_perbaikan ?
-          '<div class="mb-3 bg-green-50 border-l-2 border-green-400 rounded-r-lg p-2.5">' +
-            '<div class="text-xs font-semibold text-green-700 uppercase tracking-wider mb-0.5">Tindakan Perbaikan</div>' +
-            '<div class="text-xs text-slate-700">' + escapeHtml(t.tindakan_perbaikan) + '</div>' +
-          '</div>' : '') +
+        // ==========================================
+        // BLOK PERBAIKAN DINAMIS
+        // ==========================================
+        ((t.jenis_temuan === 'Major' || t.jenis_temuan === 'Minor') ? 
+          // Tampilan untuk Major / Minor
+          '<div class="mb-3 space-y-2">' +
+            (t.analisa_penyebab ? 
+              '<div class="bg-red-50 border-l-2 border-red-400 rounded-r-lg p-2.5">' +
+                '<div class="text-xs font-semibold text-red-700 uppercase tracking-wider mb-0.5">Analisa Penyebab</div>' +
+                '<div class="text-xs text-slate-700">' + escapeHtml(t.analisa_penyebab) + '</div>' +
+              '</div>' : '') +
+            (t.koreksi ? 
+              '<div class="bg-amber-50 border-l-2 border-amber-400 rounded-r-lg p-2.5">' +
+                '<div class="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-0.5">Koreksi</div>' +
+                '<div class="text-xs text-slate-700">' + escapeHtml(t.koreksi) + '</div>' +
+              '</div>' : '') +
+            (t.tindakan_korektif ? 
+              '<div class="bg-green-50 border-l-2 border-green-400 rounded-r-lg p-2.5">' +
+                '<div class="text-xs font-semibold text-green-700 uppercase tracking-wider mb-0.5">Tindakan Korektif</div>' +
+                '<div class="text-xs text-slate-700">' + escapeHtml(t.tindakan_korektif) + '</div>' +
+              '</div>' : '') +
+          '</div>' 
+          : 
+          // Tampilan untuk Observasi / OFI
+          (t.rekomendasi || t.tindakan_perbaikan ? 
+            '<div class="mb-3 space-y-2">' +
+              (t.rekomendasi ? 
+                '<div class="bg-blue-50 border-l-2 border-blue-400 rounded-r-lg p-2.5">' +
+                  '<div class="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-0.5">Rencana Perbaikan</div>' +
+                  '<div class="text-xs text-slate-700 italic">' + escapeHtml(t.rekomendasi) + '</div>' +
+                '</div>' : '') +
+              (t.tindakan_perbaikan ? 
+                '<div class="bg-green-50 border-l-2 border-green-400 rounded-r-lg p-2.5">' +
+                  '<div class="text-xs font-semibold text-green-700 uppercase tracking-wider mb-0.5">Tindakan Perbaikan</div>' +
+                  '<div class="text-xs text-slate-700">' + escapeHtml(t.tindakan_perbaikan) + '</div>' +
+                '</div>' : '') +
+            '</div>' : '')
+        ) +
 
         // Footer: PIC + Verifikator + Actions
         '<div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">' +
@@ -560,6 +585,7 @@ function buildUserOptions(selected, filterRoles) {
 function showTemuanModal(existing) {
   var isEdit = !!existing;
   var t = existing || {};
+  var isMajorMinor = (t.jenis_temuan === 'Major' || t.jenis_temuan === 'Minor');
 
   var content =
     '<div class="space-y-3">' +
@@ -567,18 +593,14 @@ function showTemuanModal(existing) {
       // Klausul + Jenis
       '<div class="grid grid-cols-2 gap-3">' +
         '<div>' +
-          '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-            'Klausul ISO' +
-          '</label>' +
-          '<select id="mt-klausul" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                  'focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">Klausul ISO</label>' +
+          '<select id="mt-klausul" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
             buildKlausulOptions(t.klausul) +
           '</select>' +
         '</div>' +
         '<div>' +
           '<label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Temuan</label>' +
-          '<select id="mt-jenis" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                  'focus:outline-none focus:border-blue-500">' +
+          '<select id="mt-jenis" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
             ['Major', 'Minor', 'OFI', 'Observasi'].map(function(j) {
               return '<option value="' + j + '"' + (t.jenis_temuan === j ? ' selected' : '') + '>' + j + '</option>';
             }).join('') +
@@ -586,46 +608,62 @@ function showTemuanModal(existing) {
         '</div>' +
       '</div>' +
 
-      // Deskripsi
+      // Deskripsi (Ketidaksesuaian)
       '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-          'Deskripsi Temuan <span class="text-red-500">*</span>' +
-        '</label>' +
-        '<textarea id="mt-deskripsi" rows="3" placeholder="Jelaskan temuan secara detail..." ' +
-                  'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none ' +
-                         'focus:outline-none focus:border-blue-500">' +
+        '<label class="block text-sm font-semibold text-slate-700 mb-1">Deskripsi Temuan / Ketidaksesuaian <span class="text-red-500">*</span></label>' +
+        '<textarea id="mt-deskripsi" rows="3" placeholder="Jelaskan temuan secara detail..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
           escapeHtml(t.deskripsi || '') +
         '</textarea>' +
       '</div>' +
 
-      // Rekomendasi
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">Rekomendasi Perbaikan</label>' +
-        '<textarea id="mt-rekomendasi" rows="2" placeholder="Saran perbaikan..." ' +
-                  'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none ' +
-                         'focus:outline-none focus:border-blue-500">' +
-          escapeHtml(t.rekomendasi || '') +
-        '</textarea>' +
+      // ==========================================
+      // DYNAMIC PERBAIKAN FIELDS
+      // ==========================================
+      '<div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">' +
+        '<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Form Perbaikan</div>' +
+        
+        // Khusus Observasi / OFI (Rencana Perbaikan)
+        '<div id="fields-observasi" class="' + (isMajorMinor ? 'hidden' : '') + '">' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">Rencana Perbaikan</label>' +
+          '<textarea id="mt-rekomendasi" rows="2" placeholder="Saran/Rencana perbaikan..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
+            escapeHtml(t.rekomendasi || '') +
+          '</textarea>' +
+        '</div>' +
+
+        // Khusus Major / Minor
+        '<div id="fields-majorminor" class="space-y-3 ' + (isMajorMinor ? '' : 'hidden') + '">' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Analisa Penyebab</label>' +
+            '<textarea id="mt-analisa" rows="2" placeholder="Analisa akar masalah..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
+              escapeHtml(t.analisa_penyebab || '') +
+            '</textarea>' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Koreksi</label>' +
+            '<textarea id="mt-koreksi" rows="2" placeholder="Tindakan perbaikan langsung..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
+              escapeHtml(t.koreksi || '') +
+            '</textarea>' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Tindakan Korektif</label>' +
+            '<textarea id="mt-korektif" rows="2" placeholder="Tindakan pencegahan agar tidak terulang..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
+              escapeHtml(t.tindakan_korektif || '') +
+            '</textarea>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
 
       // PIC + Target
-      '<div class="grid grid-cols-2 gap-3">' +
+      '<div class="grid grid-cols-2 gap-3 pt-2">' +
         '<div>' +
-          '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-            'PIC <span class="text-red-500">*</span>' +
-          '</label>' +
-          '<select id="mt-pic" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                  'focus:outline-none focus:border-blue-500">' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">PIC <span class="text-red-500">*</span></label>' +
+          '<select id="mt-pic" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
             buildUserOptions(t.pic, null) +
           '</select>' +
-          '<div class="text-xs text-slate-500 mt-1">Penanggung jawab perbaikan</div>' +
         '</div>' +
         '<div>' +
           '<label class="block text-sm font-semibold text-slate-700 mb-1">Target Selesai</label>' +
-          '<input id="mt-target" type="date" ' +
-                 'value="' + (t.target_selesai ? new Date(t.target_selesai).toISOString().split('T')[0] : '') + '" ' +
-                 'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                        'focus:outline-none focus:border-blue-500">' +
+          '<input id="mt-target" type="date" value="' + (t.target_selesai ? new Date(t.target_selesai).toISOString().split('T')[0] : '') + '" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
         '</div>' +
       '</div>' +
 
@@ -637,26 +675,27 @@ function showTemuanModal(existing) {
     confirmText: isEdit ? 'Simpan' : 'Tambah',
     onConfirm: async function(overlay) {
       var confirmBtn = overlay.querySelector('[data-confirm]');
+      
+      var jenis = overlay.querySelector('#mt-jenis').value;
+      var isMajMin = (jenis === 'Major' || jenis === 'Minor');
 
       var payload = {
         audit_id: state.auditId,
         klausul: overlay.querySelector('#mt-klausul').value.trim(),
-        jenis_temuan: overlay.querySelector('#mt-jenis').value,
+        jenis_temuan: jenis,
         deskripsi: overlay.querySelector('#mt-deskripsi').value.trim(),
-        rekomendasi: overlay.querySelector('#mt-rekomendasi').value.trim(),
         pic: overlay.querySelector('#mt-pic').value,
-        target_selesai: overlay.querySelector('#mt-target').value
+        target_selesai: overlay.querySelector('#mt-target').value,
+        
+        // Logika pengambilan nilai dinamis
+        rekomendasi: isMajMin ? '' : overlay.querySelector('#mt-rekomendasi').value.trim(),
+        analisa_penyebab: isMajMin ? overlay.querySelector('#mt-analisa').value.trim() : '',
+        koreksi: isMajMin ? overlay.querySelector('#mt-koreksi').value.trim() : '',
+        tindakan_korektif: isMajMin ? overlay.querySelector('#mt-korektif').value.trim() : ''
       };
 
-      // Validasi
-      if (!payload.deskripsi) {
-        showToast('Deskripsi temuan wajib diisi', 'warning');
-        return;
-      }
-      if (!payload.pic) {
-        showToast('PIC wajib dipilih', 'warning');
-        return;
-      }
+      if (!payload.deskripsi) { showToast('Deskripsi temuan wajib diisi', 'warning'); return; }
+      if (!payload.pic) { showToast('PIC wajib dipilih', 'warning'); return; }
 
       btnLoading(confirmBtn, 'Menyimpan...');
 
@@ -669,143 +708,155 @@ function showTemuanModal(existing) {
           await apiPost('createTemuan', payload);
           showToast('Temuan berhasil ditambahkan', 'success');
         }
-
         overlay.remove();
         setTimeout(function() { loadAuditDetail(); }, 500);
-
       } catch (e) {
-        console.error('[audit-detail] Save error:', e);
         btnReset(confirmBtn);
         showToast(e.message || 'Gagal menyimpan', 'error');
       }
     }
   });
+
+  // Event Listener untuk ganti Jenis (Tampilkan/Sembunyikan form)
+  setTimeout(function() {
+    var selectJenis = document.getElementById('mt-jenis');
+    if (selectJenis) {
+      selectJenis.addEventListener('change', function() {
+        var val = this.value;
+        var elObs = document.getElementById('fields-observasi');
+        var elMaj = document.getElementById('fields-majorminor');
+        
+        if (val === 'Major' || val === 'Minor') {
+          elObs.classList.add('hidden');
+          elMaj.classList.remove('hidden');
+        } else {
+          elObs.classList.remove('hidden');
+          elMaj.classList.add('hidden');
+        }
+      });
+    }
+  }, 100);
 }
 
 // ============================================================
 // MODAL: UPDATE PROGRESS
 // ============================================================
 function showProgressModal(t) {
+  var isMajorMinor = (t.jenis_temuan === 'Major' || t.jenis_temuan === 'Minor');
+
   var content =
     '<div class="space-y-3">' +
-
       // Info temuan
-      '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3">' +
+      '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-2">' +
         '<div class="flex items-center gap-2 mb-1.5">' +
           '<span class="font-mono text-xs font-bold text-slate-600">' + escapeHtml(t.temuan_id) + '</span>' +
-          '<span class="badge ' + (JENIS_STYLE[t.jenis_temuan] || JENIS_STYLE['Observasi']).bg + '">' +
-            escapeHtml(t.jenis_temuan) +
-          '</span>' +
+          '<span class="badge ' + (JENIS_STYLE[t.jenis_temuan] || JENIS_STYLE['Observasi']).bg + '">' + escapeHtml(t.jenis_temuan) + '</span>' +
         '</div>' +
-        '<div class="text-xs text-slate-600 line-clamp-3">' + escapeHtml(t.deskripsi) + '</div>' +
+        '<div class="text-xs text-slate-600 line-clamp-2">' + escapeHtml(t.deskripsi) + '</div>' +
       '</div>' +
 
-      // Status
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-          'Status Perbaikan <span class="text-red-500">*</span>' +
-        '</label>' +
-        '<select id="mp-status" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                'focus:outline-none focus:border-blue-500">' +
-          ['Open', 'In Progress', 'Closed'].map(function(s) {
-            return '<option value="' + s + '"' + (t.status_perbaikan === s ? ' selected' : '') + '>' + s + '</option>';
-          }).join('') +
-        '</select>' +
-      '</div>' +
-
-      // Tindakan
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">' +
-          'Tindakan Perbaikan <span class="text-red-500">*</span>' +
-        '</label>' +
-        '<textarea id="mp-tindakan" rows="3" placeholder="Jelaskan tindakan yang sudah dilakukan..." ' +
-                  'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none ' +
-                         'focus:outline-none focus:border-blue-500">' +
-          escapeHtml(t.tindakan_perbaikan || '') +
-        '</textarea>' +
-      '</div>' +
-
-      // Tanggal tindakan
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Tindakan</label>' +
-        '<input id="mp-tgl" type="date" ' +
-               'value="' + (t.tgl_tindakan ? new Date(t.tgl_tindakan).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]) + '" ' +
-               'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                      'focus:outline-none focus:border-blue-500">' +
-      '</div>' +
-
-      // Divider
-      '<div class="pt-3 border-t border-slate-100">' +
-        '<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">' +
-          'Verifikasi (Opsional)' +
+      // Status & Tanggal
+      '<div class="grid grid-cols-2 gap-3">' +
+        '<div>' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">Status Perbaikan <span class="text-red-500">*</span></label>' +
+          '<select id="mp-status" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
+            ['Open', 'In Progress', 'Closed'].map(function(s) {
+              return '<option value="' + s + '"' + (t.status_perbaikan === s ? ' selected' : '') + '>' + s + '</option>';
+            }).join('') +
+          '</select>' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Tindakan</label>' +
+          '<input id="mp-tgl" type="date" value="' + (t.tgl_tindakan ? new Date(t.tgl_tindakan).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]) + '" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
         '</div>' +
       '</div>' +
 
-      // Verifikator
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">Verifikator</label>' +
-        '<select id="mp-verifikator" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                'focus:outline-none focus:border-blue-500">' +
-          buildUserOptions(t.verifikator, ['Reviewer', 'Admin']) +
-        '</select>' +
-        '<div class="text-xs text-slate-500 mt-1">User dengan role Reviewer / Admin</div>' +
+      // DYNAMIC PERBAIKAN
+      '<div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">' +
+        '<div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Detail Perbaikan</div>' +
+        
+        // Observasi
+        '<div id="mp-fields-obs" class="' + (isMajorMinor ? 'hidden' : '') + '">' +
+          '<label class="block text-sm font-semibold text-slate-700 mb-1">Rencana / Tindakan Perbaikan <span class="text-red-500">*</span></label>' +
+          '<textarea id="mp-rekomendasi" rows="3" placeholder="Jelaskan tindakan perbaikan..." class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' +
+            escapeHtml(t.rekomendasi || t.tindakan_perbaikan || '') +
+          '</textarea>' +
+        '</div>' +
+
+        // Major/Minor
+        '<div id="mp-fields-maj" class="space-y-3 ' + (isMajorMinor ? '' : 'hidden') + '">' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Analisa Penyebab</label>' +
+            '<textarea id="mp-analisa" rows="2" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' + escapeHtml(t.analisa_penyebab || '') + '</textarea>' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Koreksi</label>' +
+            '<textarea id="mp-koreksi" rows="2" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' + escapeHtml(t.koreksi || '') + '</textarea>' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Tindakan Korektif</label>' +
+            '<textarea id="mp-korektif" rows="2" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none focus:outline-none focus:border-blue-500">' + escapeHtml(t.tindakan_korektif || '') + '</textarea>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
 
-      // Status verifikasi
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">Status Verifikasi</label>' +
-        '<select id="mp-status-verif" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl ' +
-                'focus:outline-none focus:border-blue-500">' +
-          ['Pending', 'Verified', 'Rejected'].map(function(s) {
-            return '<option value="' + s + '"' + (t.status_verifikasi === s ? ' selected' : '') + '>' + s + '</option>';
-          }).join('') +
-        '</select>' +
-      '</div>' +
-
-      // Catatan verifikasi
-      '<div>' +
-        '<label class="block text-sm font-semibold text-slate-700 mb-1">Catatan Verifikasi</label>' +
-        '<textarea id="mp-catatan" rows="2" placeholder="Catatan dari verifikator..." ' +
-                  'class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl resize-none ' +
-                         'focus:outline-none focus:border-blue-500">' +
-          escapeHtml(t.catatan_verifikasi || '') +
-        '</textarea>' +
+      // Verifikasi
+      '<div class="pt-2">' +
+        '<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Verifikasi (Opsional)</div>' +
+        '<div class="grid grid-cols-2 gap-3">' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Verifikator</label>' +
+            '<select id="mp-verifikator" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
+              buildUserOptions(t.verifikator, ['Reviewer', 'Admin']) +
+            '</select>' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-sm font-semibold text-slate-700 mb-1">Status Verifikasi</label>' +
+            '<select id="mp-status-verif" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">' +
+              ['Pending', 'Verified', 'Rejected'].map(function(s) {
+                return '<option value="' + s + '"' + (t.status_verifikasi === s ? ' selected' : '') + '>' + s + '</option>';
+              }).join('') +
+            '</select>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
 
     '</div>';
 
   showModal({
     title: 'Update Progress Perbaikan',
-    subtitle: t.temuan_id + ' · ' + t.jenis_temuan,
     content: content,
     confirmText: 'Simpan',
     onConfirm: async function(overlay) {
       var confirmBtn = overlay.querySelector('[data-confirm]');
+      var jenis = t.jenis_temuan;
+      var isMajMin = (jenis === 'Major' || jenis === 'Minor');
 
       var payload = {
         temuan_id: t.temuan_id,
         status_perbaikan: overlay.querySelector('#mp-status').value,
-        tindakan_perbaikan: overlay.querySelector('#mp-tindakan').value.trim(),
         tgl_tindakan: overlay.querySelector('#mp-tgl').value,
         verifikator: overlay.querySelector('#mp-verifikator').value,
         status_verifikasi: overlay.querySelector('#mp-status-verif').value,
-        catatan_verifikasi: overlay.querySelector('#mp-catatan').value.trim()
+        
+        // Ambil nilai dinamis
+        rekomendasi: isMajMin ? t.rekomendasi : overlay.querySelector('#mp-rekomendasi').value.trim(),
+        analisa_penyebab: isMajMin ? overlay.querySelector('#mp-analisa').value.trim() : t.analisa_penyebab,
+        koreksi: isMajMin ? overlay.querySelector('#mp-koreksi').value.trim() : t.koreksi,
+        tindakan_korektif: isMajMin ? overlay.querySelector('#mp-korektif').value.trim() : t.tindakan_korektif
       };
 
-      if (!payload.tindakan_perbaikan) {
-        showToast('Tindakan perbaikan wajib diisi', 'warning');
-        return;
+      if (!isMajMin && !payload.rekomendasi) {
+        showToast('Tindakan perbaikan wajib diisi', 'warning'); return;
       }
 
       btnLoading(confirmBtn, 'Menyimpan...');
-
       try {
         await apiPost('updateTemuan', payload);
         showToast('Progress berhasil diupdate', 'success');
         overlay.remove();
         setTimeout(function() { loadAuditDetail(); }, 500);
       } catch (e) {
-        console.error('[audit-detail] Update progress error:', e);
         btnReset(confirmBtn);
         showToast(e.message || 'Gagal menyimpan', 'error');
       }
